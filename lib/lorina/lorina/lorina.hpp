@@ -38,5 +38,6 @@
 #include "bristol.hpp"
 #include "dimacs.hpp"
 #include "genlib.hpp"
+#include "gtech.hpp"
 #include "pla.hpp"
 #include "verilog.hpp"
