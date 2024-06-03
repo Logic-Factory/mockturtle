@@ -7,6 +7,7 @@
 #include "events.hpp"
 #include "storage.hpp"
 
+#include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/operators.hpp>
 #include <kitty/partial_truth_table.hpp>
