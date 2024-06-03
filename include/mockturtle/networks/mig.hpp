@@ -358,6 +358,11 @@ public:
     return create_and( !c1, !c2 ) ^ !fcompl;
   }
 
+  signal create_xnor( signal const& a, signal const& b )
+  {
+    return !create_xor( a, b );
+  }
+
   signal create_ite( signal cond, signal f_then, signal f_else )
   {
     bool f_compl{ false };
