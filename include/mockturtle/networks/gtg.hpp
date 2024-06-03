@@ -1,17 +1,26 @@
 #pragma once
 
-#include "kitty/constructors.hpp"
-#include "kitty/dynamic_truth_table.hpp"
-#include "kitty/operators.hpp"
-#include "mockturtle/mockturtle.hpp"
-#include "mockturtle/networks/events.hpp"
-#include "mockturtle/networks/storage.hpp"
+#include "../traits.hpp"
+#include "../utils/algorithm.hpp"
+#include "../utils/truth_table_cache.hpp"
+#include "detail/foreach.hpp"
+#include "events.hpp"
+#include "storage.hpp"
 
-#include <assert.h>
+#include <kitty/dynamic_truth_table.hpp>
+#include <kitty/operators.hpp>
+#include <kitty/partial_truth_table.hpp>
+
+#include <list>
+#include <memory>
+#include <optional>
+#include <stack>
+#include <string>
 
 namespace mockturtle
 {
 
+/*! \brief Hash function for GTGs (from ABC) */
 template<class Node>
 struct gtg_hash
 {
@@ -32,39 +41,23 @@ struct gtg_hash
 struct gtg_storage_data
 {
   mockturtle::truth_table_cache<kitty::dynamic_truth_table> cache;
-  uint32_t num_pis{ 0u };
-  uint32_t num_pos{ 0u };
-  uint32_t trav_id{ 0u };
 };
 
-/*! \brief gates_network node
- *
- * `data[0].h1`: Fan-out size (we use MSB to indicate whether a node is dead)
- * `data[0].h2`: Application-specific value
- * `data[1].h1`: Visited flag
- * `data[1].h2`: Function literal in truth table cache
- */
+/*! \brief GTG storage container
+
+  GTGs have nodes with fan-in 2.  We split of one bit of the index pointer to
+  store a complemented attribute.  Every node has 64-bit of additional data
+  used for the following purposes:
+
+  `data[0].h1`: Fan-out size (we use MSB to indicate whether a node is dead)
+  `data[0].h2`: Application-specific value
+  `data[1].h1`: Visited flag
+  `data[1].h2`: Function literal in truth table cache
+*/
 using gtg_storage = storage<regular_node<2, 2, 1>,
                             gtg_storage_data,
                             gtg_hash<regular_node<2, 2, 1>>>;
 
-enum class gtg_gate_type
-{
-  gconst0 = '0',
-  gconst1 = '1',
-  gpi = '2',
-  gand = '3',
-  gnand = '4',
-  gor = '5',
-  gnor = '6',
-  gxor = '7',
-  gxnor = '8'
-};
-
-/**
- * @brief primitive gate network
- *  binate: and, nand, or, nor, xor, xnor
- */
 class gtg_network
 {
 public:
@@ -157,22 +150,20 @@ public:
   gtg_network()
       : _storage( std::make_shared<gtg_storage>() ),
         _events( std::make_shared<decltype( _events )::element_type>() )
-  {}
+  {
+  }
 
-  gtg_network( std::shared_ptr<gtg_network> storage )
+  gtg_network( std::shared_ptr<gtg_storage> storage )
       : _storage( storage ),
         _events( std::make_shared<decltype( _events )::element_type>() )
   {
   }
 
-  ~gtg_network()
-  {
-  }
-
   gtg_network clone() const
   {
-    return { std::make_shared<gtg_network>( *_storage ) };
+    return { std::make_shared<gtg_storage>( *_storage ) };
   }
+#pragma endregion
 
 private:
   /**
@@ -254,8 +245,10 @@ private:
    */
   signal _create_node( std::vector<signal> const& children, uint32_t literal )
   {
+    assert( children.size() == 2u );
+
     storage::element_type::node_type tmp_node;
-    std::copy( children.begin(), children.end(), std::back_inserter( tmp_node.children ) );
+    tmp_node.children = { children[0], children[1] };
     tmp_node.data[1].h2 = literal;
 
     const auto index = _storage->nodes.size();
@@ -265,7 +258,7 @@ private:
     // increase ref-count to children
     for ( auto c : children )
     {
-      _storage->nodes[c].data[0].h1++;
+      _storage->nodes[c.index].data[0].h1++;
     }
 
     for ( auto const& fn : _events->on_add )
@@ -273,10 +266,11 @@ private:
       ( *fn )( index );
     }
 
-    return index;
+    return { index, 0 };
   }
 
 public:
+#pragma region Primary I / O and constants
   signal get_constant( bool value ) const
   {
     return { 0, static_cast<uint64_t>( value ? 1 : 0 ) };
@@ -286,25 +280,21 @@ public:
   {
     (void)name;
     const auto index = _storage->nodes.size();
-    _storage->nodes.emplace_back();
-    _storage->nodes[index].data[1].h2 = 1; // mark as PI
-
+    auto& node = _storage->nodes.emplace_back();
+    node.children[0].data = node.children[1].data = _storage->inputs.size();
+    node.data[1].h2 = 1; // mark as PI
     _storage->inputs.emplace_back( index );
-    ++_storage->data.num_pis;
-
     return { index, 0 };
   }
 
   uint32_t create_po( signal const& f, std::string const& name = std::string() )
   {
     (void)name;
-
-    // increase ref-count to children
+    /* increase ref-count to children */
     _storage->nodes[f.index].data[0].h1++;
     auto const po_index = _storage->outputs.size();
-    _storage->outputs.emplace_back( f );
-    ++_storage->data.num_pos;
-    return po_index;
+    _storage->outputs.emplace_back( f.index, f.complement );
+    return static_cast<uint32_t>( po_index );
   }
 
   bool is_combinational() const
@@ -332,22 +322,9 @@ public:
     (void)n;
     return false;
   }
+#pragma endregion
 
-  /**
-   * @brief create node by the fanins and truth table
-   * @param children fanin nodes
-   * @param function truth table
-   */
-  signal create_node( std::vector<signal> const& children, kitty::dynamic_truth_table const& function )
-  {
-    if ( children.size() == 0u )
-    {
-      assert( function.num_vars() == 0u );
-      return get_constant( !kitty::is_const0( function ) );
-    }
-    return _create_node( children, _storage->data.cache.insert( function ) );
-  }
-
+#pragma region Create unary functions
   signal create_buf( signal const& a )
   {
     return a;
@@ -356,6 +333,18 @@ public:
   signal create_not( signal const& a )
   {
     return !a;
+  }
+#pragma endregion
+
+#pragma region Create binary functions
+  signal create_node( std::vector<signal> const& children, kitty::dynamic_truth_table const& function )
+  {
+    if ( children.size() == 0u )
+    {
+      assert( function.num_vars() == 0u );
+      return get_constant( !kitty::is_const0( function ) );
+    }
+    return _create_node( children, _storage->data.cache.insert( function ) );
   }
 
   signal create_and( signal a, signal b )
@@ -397,7 +386,9 @@ public:
   {
     return _create_node( { a, b }, 13 );
   }
+#pragma endregion
 
+#pragma region Createy ternary functions
   signal create_maj( signal a, signal b, signal c )
   {
     return _create_node( { a, b, c }, 14 );
@@ -412,29 +403,67 @@ public:
   {
     return _create_node( { a, b, c }, 18 );
   }
+#pragma endregion
 
+#pragma region Create nary functions
   signal create_nary_and( std::vector<signal> const& fs )
   {
-    return mockturtle::tree_reduce( fs.begin(), fs.end(), get_constant( true ), [this]( auto const& a, auto const& b ) { return create_and( a, b ); } );
+    return tree_reduce( fs.begin(), fs.end(), get_constant( true ), [this]( auto const& a, auto const& b ) { return create_and( a, b ); } );
   }
 
   signal create_nary_or( std::vector<signal> const& fs )
   {
-    return mockturtle::tree_reduce( fs.begin(), fs.end(), get_constant( false ), [this]( auto const& a, auto const& b ) { return create_or( a, b ); } );
+    return tree_reduce( fs.begin(), fs.end(), get_constant( false ), [this]( auto const& a, auto const& b ) { return create_or( a, b ); } );
   }
 
   signal create_nary_xor( std::vector<signal> const& fs )
   {
-    return mockturtle::tree_reduce( fs.begin(), fs.end(), get_constant( false ), [this]( auto const& a, auto const& b ) { return create_xor( a, b ); } );
+    return tree_reduce( fs.begin(), fs.end(), get_constant( false ), [this]( auto const& a, auto const& b ) { return create_xor( a, b ); } );
   }
+#pragma endregion
 
+#pragma region Create arbitrary functions
   signal clone_node( gtg_network const& other, node const& source, std::vector<signal> const& children )
   {
     assert( !children.empty() );
     const auto tt = other._storage->data.cache[other._storage->nodes[source].data[1].h2];
     return create_node( children, tt );
   }
+#pragma endregion
 
+#pragma region Has node
+  std::optional<signal> has_and( signal a, signal b )
+  {
+    return {};
+  }
+
+  std::optional<signal> has_nand( signal a, signal b )
+  {
+    return {};
+  }
+
+  std::optional<signal> has_or( signal a, signal b )
+  {
+    return {};
+  }
+
+  std::optional<signal> has_nor( signal a, signal b )
+  {
+    return {};
+  }
+
+  std::optional<signal> has_xor( signal a, signal b )
+  {
+    return {};
+  }
+
+  std::optional<signal> has_xnor( signal a, signal b )
+  {
+    return {};
+  }
+#pragma endregion
+
+#pragma region Structural properties
   bool is_dead( node const& n ) const
   {
     return ( _storage->nodes[n].data[0].h1 >> 31 ) & 1;
@@ -565,10 +594,10 @@ public:
     return false;
   }
 
-  /**
-   * @brief checking the node is a logic gate
-   * @param n
-   */
+#pragma endregion
+
+#pragma region Functional properties
+
   bool is_function( node const& n ) const
   {
     return n > 1 && !is_pi( n );
@@ -579,12 +608,9 @@ public:
     assert( is_function( n ) );
     return _storage->data.cache[_storage->nodes[n].data[1].h2];
   }
+#pragma endregion
 
-  uint32_t node_literal( const node& n ) const
-  {
-    return _storage->nodes[n].data[1].h2;
-  }
-
+#pragma region Nodes and signals
   node get_node( signal const& f ) const
   {
     return f.index;
@@ -673,6 +699,18 @@ public:
     } );
     return i;
   }
+#pragma endregion
+
+#pragma region Node and signal iterators
+  template<typename Fn>
+  void foreach_node( Fn&& fn ) const
+  {
+    auto r = range<uint64_t>( _storage->nodes.size() );
+    detail::foreach_element_if(
+        r.begin(), r.end(),
+        [this]( auto n ) { return !is_dead( n ); },
+        fn );
+  }
 
   template<typename Fn>
   void foreach_ci( Fn&& fn ) const
@@ -696,16 +734,6 @@ public:
   void foreach_po( Fn&& fn ) const
   {
     detail::foreach_element( _storage->outputs.begin(), _storage->outputs.end(), fn );
-  }
-
-  template<typename Fn>
-  void foreach_node( Fn&& fn ) const
-  {
-    auto r = range<uint64_t>( _storage->nodes.size() );
-    detail::foreach_element_if(
-        r.begin(), r.end(),
-        [this]( auto n ) { return !is_dead( n ); },
-        fn );
   }
 
   template<typename Fn>
@@ -753,6 +781,9 @@ public:
       fn( signal{ _storage->nodes[n].children[1] }, 1 );
     }
   }
+#pragma endregion
+
+#pragma region Value simulation
 
   template<typename Iterator>
   mockturtle::iterates_over_t<Iterator, bool>
@@ -798,7 +829,9 @@ public:
     }
     return result;
   }
+#pragma endregion
 
+#pragma region Custom node values
   void clear_values() const
   {
     std::for_each( _storage->nodes.begin(), _storage->nodes.end(), []( auto& n ) { n.data[0].h2 = 0; } );
@@ -823,7 +856,9 @@ public:
   {
     return --_storage->nodes[n].data[0].h2;
   }
+#pragma endregion
 
+#pragma region Visited flags
   void clear_visited() const
   {
     std::for_each( _storage->nodes.begin(), _storage->nodes.end(), []( auto& n ) { n.data[1].h1 = 0; } );
@@ -848,16 +883,21 @@ public:
   {
     ++_storage->trav_id;
   }
+#pragma endregion
 
+#pragma region General methods
   auto& events() const
   {
     return *_events;
   }
+#pragma endregion
 
-private:
+public:
   std::shared_ptr<gtg_storage> _storage;
-  std::shared_ptr<mockturtle::network_events<base_type>> _events;
-}; // end class gtg_network
+  std::shared_ptr<network_events<base_type>> _events;
+};
+
+} // namespace mockturtle
 
 namespace std
 {
@@ -877,4 +917,4 @@ struct hash<mockturtle::gtg_network::signal>
   }
 }; /* hash */
 
-} // end namespace mockturtle
+} // namespace std
