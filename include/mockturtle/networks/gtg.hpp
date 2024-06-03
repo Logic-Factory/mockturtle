@@ -12,7 +12,7 @@
 namespace mockturtle
 {
 
-struct gtech_storage_data
+struct gtg_storage_data
 {
   mockturtle::truth_table_cache<kitty::dynamic_truth_table> cache;
   uint32_t num_pis{ 0u };
@@ -27,18 +27,18 @@ struct gtech_storage_data
  * `data[1].h1`: Function literal in truth table cache
  * `data[2].h2`: Visited flags
  */
-struct gtech_node : mockturtle::mixed_fanin_node<2>
+struct gtg_node : mockturtle::mixed_fanin_node<2>
 {
-  bool operator==( gtech_node const& other ) const
+  bool operator==( gtg_node const& other ) const
   {
     // function ID and children are same, the 2 gates are seemed to be the same
     return data[1].h1 == other.data[1].h1 && children == other.children;
   }
 };
 
-using gtech_storage = mockturtle::storage<gtech_node, gtech_storage_data>;
+using gtg_storage = mockturtle::storage<gtg_node, gtg_storage_data>;
 
-enum class gtech_gate_type
+enum class gtg_gate_type
 {
   gconst0 = '0',
   gconst1 = '1',
@@ -60,25 +60,25 @@ enum class gtech_gate_type
  *  unate:  not, buf
  *  binate: and, nand, or, nor, xor, xnor
  */
-class gtech_network
+class gtg_network
 {
 public:
-  using base_type = gtech_network;
+  using base_type = gtg_network;
   using node = uint32_t;
   using signal = uint32_t;
-  using storage = std::shared_ptr<gtech_storage>;
+  using storage = std::shared_ptr<gtg_storage>;
 
   static constexpr auto min_fanin_size = 1u; // support not
   static constexpr auto max_fanin_size = 2u;
 
 private:
-  std::shared_ptr<gtech_storage> _storage;
+  std::shared_ptr<gtg_storage> _storage;
   std::shared_ptr<mockturtle::network_events<base_type>> _events;
-  std::vector<gtech_gate_type> _gates_type;
+  std::vector<gtg_gate_type> _gates_type;
 
 public:
-  gtech_network();
-  ~gtech_network();
+  gtg_network();
+  ~gtg_network();
 
 public:
   inline signal get_constant( bool value ) const
@@ -88,7 +88,7 @@ public:
   signal create_pi( std::string const& name = std::string() );
   uint32_t create_po( signal const& f, std::string const& name = std::string() );
   signal create_node( std::vector<signal> const& children, kitty::dynamic_truth_table const& function );
-  signal clone_node( gtech_network const& other, node const& source, std::vector<signal> const& children );
+  signal clone_node( gtg_network const& other, node const& source, std::vector<signal> const& children );
 
   signal create_buf( signal const& a );              // literal: 2
   signal create_not( signal const& a );              // literal: 3
@@ -114,7 +114,7 @@ public:
   uint32_t node_literal( const node& n ) const;
 
   node get_node( signal const& f ) const;
-  gtech_gate_type get_nodetype( node const& n ) const;
+  gtg_gate_type get_nodetype( node const& n ) const;
   signal make_signal( node const& n ) const;
   uint32_t node_to_index( node const& n ) const;
   node index_to_node( uint32_t index ) const;
@@ -308,18 +308,18 @@ private:
   void init();
 };
 
-gtech_network::gtech_network()
-    : _storage( std::make_shared<gtech_storage>() ),
+gtg_network::gtg_network()
+    : _storage( std::make_shared<gtg_storage>() ),
       _events( std::make_shared<decltype( _events )::element_type>() )
 {
   init();
 }
 
-gtech_network::~gtech_network()
+gtg_network::~gtg_network()
 {
 }
 
-gtech_network::signal gtech_network::create_pi( std::string const& name )
+gtg_network::signal gtg_network::create_pi( std::string const& name )
 {
   (void)name;
   const auto index = _storage->nodes.size();
@@ -329,11 +329,11 @@ gtech_network::signal gtech_network::create_pi( std::string const& name )
 
   ++_storage->data.num_pis;
 
-  _gates_type.emplace_back( gtech_gate_type::gpi );
+  _gates_type.emplace_back( gtg_gate_type::gpi );
   return index;
 }
 
-uint32_t gtech_network::create_po( gtech_network::signal const& f, std::string const& name )
+uint32_t gtg_network::create_po( gtg_network::signal const& f, std::string const& name )
 {
   (void)name;
 
@@ -346,7 +346,7 @@ uint32_t gtech_network::create_po( gtech_network::signal const& f, std::string c
   return po_index;
 }
 
-gtech_network::signal gtech_network::create_node( std::vector<gtech_network::signal> const& children, kitty::dynamic_truth_table const& function )
+gtg_network::signal gtg_network::create_node( std::vector<gtg_network::signal> const& children, kitty::dynamic_truth_table const& function )
 {
   if ( children.size() == 0u )
   {
@@ -356,183 +356,183 @@ gtech_network::signal gtech_network::create_node( std::vector<gtech_network::sig
   return _create_node( children, _storage->data.cache.insert( function ) );
 }
 
-gtech_network::signal gtech_network::clone_node( gtech_network const& other, gtech_network::node const& source, std::vector<gtech_network::signal> const& children )
+gtg_network::signal gtg_network::clone_node( gtg_network const& other, gtg_network::node const& source, std::vector<gtg_network::signal> const& children )
 {
   assert( !children.empty() );
   const auto tt = other._storage->data.cache[other._storage->nodes[source].data[1].h1];
   return create_node( children, tt );
 }
 
-gtech_network::signal gtech_network::create_buf( gtech_network::signal const& a )
+gtg_network::signal gtg_network::create_buf( gtg_network::signal const& a )
 {
   return a;
 }
 
-gtech_network::signal gtech_network::create_not( gtech_network::signal const& a )
+gtg_network::signal gtg_network::create_not( gtg_network::signal const& a )
 {
-  _gates_type.emplace_back( gtech_gate_type::gnot );
+  _gates_type.emplace_back( gtg_gate_type::gnot );
   auto res = _create_node( { a }, 3 ); // 0x1
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gnot );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gnot );
   return res;
 }
 
-gtech_network::signal gtech_network::create_and( gtech_network::signal a, gtech_network::signal b )
+gtg_network::signal gtg_network::create_and( gtg_network::signal a, gtg_network::signal b )
 {
-  _gates_type.emplace_back( gtech_gate_type::gand );
+  _gates_type.emplace_back( gtg_gate_type::gand );
   auto res = _create_node( { a, b }, 4 ); // 0x1
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gand );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gand );
   return res;
 }
-gtech_network::signal gtech_network::create_nand( gtech_network::signal a, gtech_network::signal b )
+gtg_network::signal gtg_network::create_nand( gtg_network::signal a, gtg_network::signal b )
 {
-  _gates_type.emplace_back( gtech_gate_type::gnand );
+  _gates_type.emplace_back( gtg_gate_type::gnand );
   auto res = _create_node( { a, b }, 5 );
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gnand );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gnand );
   return res;
 }
-gtech_network::signal gtech_network::create_or( gtech_network::signal a, gtech_network::signal b )
+gtg_network::signal gtg_network::create_or( gtg_network::signal a, gtg_network::signal b )
 {
-  _gates_type.emplace_back( gtech_gate_type::gor );
+  _gates_type.emplace_back( gtg_gate_type::gor );
   auto res = _create_node( { a, b }, 6 );
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gor );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gor );
   return res;
   // return _create_node({a, b}, 6);
 }
-gtech_network::signal gtech_network::create_nor( gtech_network::signal a, gtech_network::signal b )
+gtg_network::signal gtg_network::create_nor( gtg_network::signal a, gtg_network::signal b )
 {
-  _gates_type.emplace_back( gtech_gate_type::gnor );
+  _gates_type.emplace_back( gtg_gate_type::gnor );
   auto res = _create_node( { a, b }, 7 );
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gnor );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gnor );
   return res;
 }
-gtech_network::signal gtech_network::create_xor( gtech_network::signal a, gtech_network::signal b )
+gtg_network::signal gtg_network::create_xor( gtg_network::signal a, gtg_network::signal b )
 {
-  _gates_type.emplace_back( gtech_gate_type::gxor );
+  _gates_type.emplace_back( gtg_gate_type::gxor );
   auto res = _create_node( { a, b }, 12 );
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gxor );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gxor );
   return res;
 }
-gtech_network::signal gtech_network::create_xnor( gtech_network::signal a, gtech_network::signal b )
+gtg_network::signal gtg_network::create_xnor( gtg_network::signal a, gtg_network::signal b )
 {
-  _gates_type.emplace_back( gtech_gate_type::gxnor );
+  _gates_type.emplace_back( gtg_gate_type::gxnor );
   auto res = _create_node( { a, b }, 13 );
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gxnor );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gxnor );
   return res;
 }
 
-gtech_network::signal gtech_network::create_maj( gtech_network::signal a, gtech_network::signal b, gtech_network::signal c )
+gtg_network::signal gtg_network::create_maj( gtg_network::signal a, gtg_network::signal b, gtg_network::signal c )
 {
-  _gates_type.emplace_back( gtech_gate_type::gmaj );
+  _gates_type.emplace_back( gtg_gate_type::gmaj );
   auto res = _create_node( { a, b, c }, 14 );
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gmaj );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gmaj );
   return res;
 }
 
-gtech_network::signal gtech_network::create_ite( gtech_network::signal i, gtech_network::signal t, gtech_network::signal e )
+gtg_network::signal gtg_network::create_ite( gtg_network::signal i, gtg_network::signal t, gtg_network::signal e )
 {
-  _gates_type.emplace_back( gtech_gate_type::gite );
+  _gates_type.emplace_back( gtg_gate_type::gite );
   auto res = _create_node( { i, t, e }, 16 );
   assert( _storage->nodes.size() == _gates_type.size() );
-  assert( get_nodetype( get_node( res ) ) == gtech_gate_type::gite );
+  assert( get_nodetype( get_node( res ) ) == gtg_gate_type::gite );
   return res;
 }
 
-gtech_network::signal gtech_network::create_nary_and( std::vector<gtech_network::signal> const& fs )
+gtg_network::signal gtg_network::create_nary_and( std::vector<gtg_network::signal> const& fs )
 {
   return mockturtle::tree_reduce( fs.begin(), fs.end(), get_constant( true ), [this]( auto const& a, auto const& b ) { return create_and( a, b ); } );
 }
 
-gtech_network::signal gtech_network::create_nary_or( std::vector<gtech_network::signal> const& fs )
+gtg_network::signal gtg_network::create_nary_or( std::vector<gtg_network::signal> const& fs )
 {
   return mockturtle::tree_reduce( fs.begin(), fs.end(), get_constant( false ), [this]( auto const& a, auto const& b ) { return create_or( a, b ); } );
 }
 
-gtech_network::signal gtech_network::create_nary_xor( std::vector<gtech_network::signal> const& fs )
+gtg_network::signal gtg_network::create_nary_xor( std::vector<gtg_network::signal> const& fs )
 {
   return mockturtle::tree_reduce( fs.begin(), fs.end(), get_constant( false ), [this]( auto const& a, auto const& b ) { return create_xor( a, b ); } );
 }
 
-uint32_t gtech_network::fanin_size( gtech_network::node const& n ) const
+uint32_t gtg_network::fanin_size( gtg_network::node const& n ) const
 {
   return static_cast<uint32_t>( _storage->nodes[n].children.size() );
 }
 
-uint32_t gtech_network::fanout_size( gtech_network::node const& n ) const
+uint32_t gtg_network::fanout_size( gtg_network::node const& n ) const
 {
   return _storage->nodes[n].data[0].h1;
 }
 
-uint32_t gtech_network::incr_fanout_size( gtech_network::node const& n ) const
+uint32_t gtg_network::incr_fanout_size( gtg_network::node const& n ) const
 {
   return _storage->nodes[n].data[0].h1++;
 }
 
-uint32_t gtech_network::decr_fanout_size( gtech_network::node const& n ) const
+uint32_t gtg_network::decr_fanout_size( gtg_network::node const& n ) const
 {
   return --_storage->nodes[n].data[0].h1;
 }
 
-kitty::dynamic_truth_table gtech_network::node_function( const gtech_network::node& n ) const
+kitty::dynamic_truth_table gtg_network::node_function( const gtg_network::node& n ) const
 {
   return _storage->data.cache[_storage->nodes[n].data[1].h1];
 }
 
-uint32_t gtech_network::node_literal( const gtech_network::node& n ) const
+uint32_t gtg_network::node_literal( const gtg_network::node& n ) const
 {
   return _storage->nodes[n].data[1].h1;
 }
 
-gtech_network::node gtech_network::get_node( gtech_network::signal const& f ) const
+gtg_network::node gtg_network::get_node( gtg_network::signal const& f ) const
 {
   return f;
 }
 
-gtech_gate_type gtech_network::get_nodetype( gtech_network::node const& n ) const
+gtg_gate_type gtg_network::get_nodetype( gtg_network::node const& n ) const
 {
   return _gates_type[n];
 }
 
-gtech_network::signal gtech_network::make_signal( gtech_network::node const& n ) const
+gtg_network::signal gtg_network::make_signal( gtg_network::node const& n ) const
 {
   return n;
 }
 
-uint32_t gtech_network::node_to_index( gtech_network::node const& n ) const
+uint32_t gtg_network::node_to_index( gtg_network::node const& n ) const
 {
   return n;
 }
 
-gtech_network::node gtech_network::index_to_node( uint32_t index ) const
+gtg_network::node gtg_network::index_to_node( uint32_t index ) const
 {
   return index;
 }
 
-gtech_network::node gtech_network::pi_at( uint32_t index ) const
+gtg_network::node gtg_network::pi_at( uint32_t index ) const
 {
   assert( index < _storage->data.num_pis );
   return *( _storage->inputs.begin() + index );
 }
 
-gtech_network::signal gtech_network::po_at( uint32_t index ) const
+gtg_network::signal gtg_network::po_at( uint32_t index ) const
 {
   assert( index < _storage->data.num_pos );
   return ( _storage->outputs.begin() + index )->index;
 }
 
-uint32_t gtech_network::pi_index( gtech_network::node const& n ) const
+uint32_t gtg_network::pi_index( gtg_network::node const& n ) const
 {
   assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data );
   return static_cast<uint32_t>( _storage->nodes[n].children[0].data );
 }
 
-uint32_t gtech_network::po_index( gtech_network::signal const& s ) const
+uint32_t gtg_network::po_index( gtg_network::signal const& s ) const
 {
   uint32_t i = -1;
   foreach_po( [&]( const auto& x, auto index ) {
@@ -546,13 +546,13 @@ uint32_t gtech_network::po_index( gtech_network::signal const& s ) const
 }
 
 template<typename Fn>
-void gtech_network::foreach_pi( Fn&& fn ) const
+void gtg_network::foreach_pi( Fn&& fn ) const
 {
   mockturtle::detail::foreach_element( _storage->inputs.begin(), _storage->inputs.end(), fn );
 }
 
 template<typename Fn>
-void gtech_network::foreach_po( Fn&& fn ) const
+void gtg_network::foreach_po( Fn&& fn ) const
 {
   using IteratorType = decltype( _storage->outputs.begin() );
   mockturtle::detail::foreach_element_transform<IteratorType, uint32_t>(
@@ -561,14 +561,14 @@ void gtech_network::foreach_po( Fn&& fn ) const
 }
 
 template<typename Fn>
-void gtech_network::foreach_node( Fn&& fn ) const
+void gtg_network::foreach_node( Fn&& fn ) const
 {
   auto r = mockturtle::range<uint64_t>( _storage->nodes.size() );
   mockturtle::detail::foreach_element( r.begin(), r.end(), fn );
 }
 
 template<typename Fn>
-void gtech_network::foreach_gate( Fn&& fn ) const
+void gtg_network::foreach_gate( Fn&& fn ) const
 {
   auto r = mockturtle::range<uint64_t>( 2u, _storage->nodes.size() ); /* start from 2 to avoid constant */
   mockturtle::detail::foreach_element_if(
@@ -578,7 +578,7 @@ void gtech_network::foreach_gate( Fn&& fn ) const
 }
 
 template<typename Fn>
-void gtech_network::foreach_fanin( gtech_network::node const& n, Fn&& fn ) const
+void gtg_network::foreach_fanin( gtg_network::node const& n, Fn&& fn ) const
 {
   if ( n <= 1 || is_pi( n ) ) // skip constant 0, constant 1 and PI s
     return;
@@ -591,7 +591,7 @@ void gtech_network::foreach_fanin( gtech_network::node const& n, Fn&& fn ) const
 
 template<typename Iterator>
 mockturtle::iterates_over_t<Iterator, bool>
-gtech_network::compute( gtech_network::node const& n, Iterator begin, Iterator end ) const
+gtg_network::compute( gtg_network::node const& n, Iterator begin, Iterator end ) const
 {
   assert( n > 1 && !is_pi( n ) );
 
@@ -606,7 +606,7 @@ gtech_network::compute( gtech_network::node const& n, Iterator begin, Iterator e
 
 template<typename Iterator>
 mockturtle::iterates_over_truth_table_t<Iterator>
-gtech_network::compute( gtech_network::node const& n, Iterator begin, Iterator end ) const
+gtg_network::compute( gtg_network::node const& n, Iterator begin, Iterator end ) const
 {
   const auto nfanin = _storage->nodes[n].children.size();
 
@@ -634,7 +634,7 @@ gtech_network::compute( gtech_network::node const& n, Iterator begin, Iterator e
   return result;
 }
 
-gtech_network::signal gtech_network::_create_node( std::vector<gtech_network::signal> const& children, uint32_t literal )
+gtg_network::signal gtg_network::_create_node( std::vector<gtg_network::signal> const& children, uint32_t literal )
 {
   storage::element_type::node_type tmp_node;
   std::copy( children.begin(), children.end(), std::back_inserter( tmp_node.children ) );
@@ -694,7 +694,7 @@ gtech_network::signal gtech_network::_create_node( std::vector<gtech_network::si
  *     xor3   -> 1001,0110          18
  *
  */
-void gtech_network::init()
+void gtg_network::init()
 {
   /* reserve the second node for constant 1 */
   _storage->nodes.emplace_back();
@@ -750,31 +750,31 @@ void gtech_network::init()
   _storage->data.cache.insert( tt_xor3 );
 
   _gates_type.reserve( 20000u );
-  _gates_type.emplace_back( gtech_gate_type::gconst0 );
-  _gates_type.emplace_back( gtech_gate_type::gconst1 );
+  _gates_type.emplace_back( gtg_gate_type::gconst0 );
+  _gates_type.emplace_back( gtg_gate_type::gconst1 );
 }
 
-bool gtech_network::verify()
+bool gtg_network::verify()
 {
   this->foreach_node( [&]( auto const& node ) {
         if(is_constant(node))
-            assert(get_nodetype(node) == gtech_gate_type::gconst0 || get_nodetype(node) == gtech_gate_type::gconst1);
+            assert(get_nodetype(node) == gtg_gate_type::gconst0 || get_nodetype(node) == gtg_gate_type::gconst1);
         if(is_pi(node))
-            assert(get_nodetype(node) == gtech_gate_type::gpi);
+            assert(get_nodetype(node) == gtg_gate_type::gpi);
         if(is_not(node))
-            assert(get_nodetype(node) == gtech_gate_type::gnot);
+            assert(get_nodetype(node) == gtg_gate_type::gnot);
         if(is_and(node))
-            assert(get_nodetype(node) == gtech_gate_type::gand);
+            assert(get_nodetype(node) == gtg_gate_type::gand);
         if(is_nand(node))
-            assert(get_nodetype(node) == gtech_gate_type::gnand);
+            assert(get_nodetype(node) == gtg_gate_type::gnand);
         if(is_or(node))
-            assert(get_nodetype(node) == gtech_gate_type::gor);
+            assert(get_nodetype(node) == gtg_gate_type::gor);
         if(is_nor(node))
-            assert(get_nodetype(node) == gtech_gate_type::gnor);
+            assert(get_nodetype(node) == gtg_gate_type::gnor);
         if(is_xor(node))
-            assert(get_nodetype(node) == gtech_gate_type::gxor);
+            assert(get_nodetype(node) == gtg_gate_type::gxor);
         if(is_xnor(node))
-            assert(get_nodetype(node) == gtech_gate_type::gxnor); } );
+            assert(get_nodetype(node) == gtg_gate_type::gxnor); } );
   return true;
 }
 } // end namespace mockturtle
