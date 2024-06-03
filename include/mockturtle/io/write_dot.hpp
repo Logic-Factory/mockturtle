@@ -34,21 +34,20 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
+#include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 
-#include <fmt/format.h>
-
 #include "../traits.hpp"
 #include "../views/depth_view.hpp"
 
 namespace mockturtle
 {
-
 template<class Ntk>
 class default_dot_drawer
 {
@@ -71,7 +70,7 @@ public: /* callbacks */
     }
     else if ( ntk.is_ci( n ) )
     {
-      return "triangle";
+      return "house";
     }
     else
     {
@@ -100,7 +99,7 @@ public: /* callbacks */
   {
     (void)ntk;
     (void)i;
-    return "invtriangle";
+    return "invhouse";
   }
 
   virtual std::string node_fillcolor( Ntk const& ntk, node<Ntk> const& n ) const
@@ -500,8 +499,18 @@ void write_dot( Ntk const& ntk, std::ostream& os, Drawer const& drawer = {} )
   } );
   levels << "}\n";
 
+  std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+  std::time_t t = std::chrono::system_clock::to_time_t( now );
+  std::tm* tm = std::localtime( &t );
+  char buffer[80];
+  std::strftime( buffer, sizeof( buffer ), "%Y-%m-%d %H:%M:%S", tm );
+  std::string curr_time = std::string( buffer );
+
+  std::string legned = "powerd by LogicFactory \n (" + curr_time + ")\n";
   os << "digraph {\n"
      << "rankdir=BT;\n"
+     << "label=\"" << legned << "\";"
+     << "labelloc = \"b\";\n"
      << nodes.str() << edges.str() << levels.str() << "}\n";
 }
 
@@ -517,7 +526,7 @@ void write_dot( Ntk const& ntk, std::ostream& os, Drawer const& drawer = {} )
  * \param ntk Network
  * \param filename Filename
  */
-template<class Ntk, class Drawer = default_dot_drawer<Ntk>>
+template<class Ntk, class Drawer = gate_dot_drawer<Ntk>>
 void write_dot( Ntk const& ntk, std::string const& filename, Drawer const& drawer = {} )
 {
   std::ofstream os( filename.c_str(), std::ofstream::out );
