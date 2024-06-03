@@ -153,11 +153,43 @@ class gate_dot_drawer : public default_dot_drawer<Ntk>
 public:
   virtual std::string node_label( Ntk const& ntk, node<Ntk> const& n ) const override
   {
+    if constexpr ( has_has_binding_v<Ntk> )
+    {
+      if ( ntk.has_binding( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-" + ntk.get_binding( n ).name;
+      }
+    }
+
+    if constexpr ( has_is_buf_v<Ntk> )
+    {
+      if ( ntk.is_buf( n ) && !ntk.is_ci( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-buf";
+      }
+    }
+
+    if constexpr ( has_is_not_v<Ntk> )
+    {
+      if ( ntk.is_not( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-not";
+      }
+    }
+
     if constexpr ( has_is_and_v<Ntk> )
     {
       if ( ntk.is_and( n ) )
       {
-        return "AND";
+        return std::to_string( ntk.node_to_index( n ) ) + "-and";
+      }
+    }
+
+    if constexpr ( has_is_nand_v<Ntk> )
+    {
+      if ( ntk.is_nand( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-nand";
       }
     }
 
@@ -165,7 +197,15 @@ public:
     {
       if ( ntk.is_or( n ) )
       {
-        return "OR";
+        return std::to_string( ntk.node_to_index( n ) ) + "-or";
+      }
+    }
+
+    if constexpr ( has_is_nor_v<Ntk> )
+    {
+      if ( ntk.is_nor( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-nor";
       }
     }
 
@@ -173,7 +213,15 @@ public:
     {
       if ( ntk.is_xor( n ) )
       {
-        return "XOR";
+        return std::to_string( ntk.node_to_index( n ) ) + "-xor";
+      }
+    }
+
+    if constexpr ( has_is_xnor_v<Ntk> )
+    {
+      if ( ntk.is_xnor( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-xnor";
       }
     }
 
@@ -186,11 +234,10 @@ public:
           if ( ntk.is_constant( ntk.get_node( f ) ) )
           {
             const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
-            label = v ? "OR" : "AND";
+            label = v ? std::to_string( ntk.node_to_index( n ) )+"-or" : std::to_string( ntk.node_to_index( n ) )+"-and";
             return false;
           }
-          return true;
-        } );
+          return true; } );
         return label;
       }
     }
@@ -199,7 +246,7 @@ public:
     {
       if ( ntk.is_xor3( n ) )
       {
-        return "XOR";
+        return std::to_string( ntk.node_to_index( n ) ) + "-xor3";
       }
     }
 
@@ -207,7 +254,7 @@ public:
     {
       if ( ntk.is_nary_and( n ) )
       {
-        return "AND";
+        return std::to_string( ntk.node_to_index( n ) ) + "-and_n";
       }
     }
 
@@ -215,7 +262,7 @@ public:
     {
       if ( ntk.is_nary_or( n ) )
       {
-        return "OR";
+        return std::to_string( ntk.node_to_index( n ) ) + "-or_n";
       }
     }
 
@@ -223,15 +270,7 @@ public:
     {
       if ( ntk.is_nary_xor( n ) )
       {
-        return "XOR";
-      }
-    }
-
-    if constexpr ( has_is_buf_v<Ntk> )
-    {
-      if ( ntk.is_buf( n ) && !ntk.is_ci( n ) )
-      {
-        return "BUF";
+        return std::to_string( ntk.node_to_index( n ) ) + "-xor_n";
       }
     }
 
@@ -239,7 +278,7 @@ public:
     {
       if ( ntk.is_crossing( n ) )
       {
-        return "CROSS";
+        return std::to_string( ntk.node_to_index( n ) ) + "-cross";
       }
     }
 
@@ -248,11 +287,36 @@ public:
 
   virtual std::string node_fillcolor( Ntk const& ntk, node<Ntk> const& n ) const override
   {
+
+    if constexpr ( has_is_buf_v<Ntk> )
+    {
+      if ( ntk.is_buf( n ) && !ntk.is_ci( n ) )
+      {
+        return "palegoldenrod";
+      }
+    }
+
+    if constexpr ( has_is_not_v<Ntk> )
+    {
+      if ( ntk.is_not( n ) )
+      {
+        return "white";
+      }
+    }
+
     if constexpr ( has_is_and_v<Ntk> )
     {
       if ( ntk.is_and( n ) )
       {
         return "lightcoral";
+      }
+    }
+
+    if constexpr ( has_is_nand_v<Ntk> )
+    {
+      if ( ntk.is_nand( n ) )
+      {
+        return "lightyellow";
       }
     }
 
@@ -264,11 +328,27 @@ public:
       }
     }
 
+    if constexpr ( has_is_nor_v<Ntk> )
+    {
+      if ( ntk.is_nor( n ) )
+      {
+        return "lightpink";
+      }
+    }
+
     if constexpr ( has_is_xor_v<Ntk> )
     {
       if ( ntk.is_xor( n ) )
       {
         return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_xnor_v<Ntk> )
+    {
+      if ( ntk.is_xnor( n ) )
+      {
+        return "lightsalmon";
       }
     }
 
@@ -319,14 +399,6 @@ public:
       if ( ntk.is_nary_xor( n ) )
       {
         return "lightskyblue";
-      }
-    }
-
-    if constexpr ( has_is_buf_v<Ntk> )
-    {
-      if ( ntk.is_buf( n ) && !ntk.is_ci( n ) )
-      {
-        return "palegoldenrod";
       }
     }
 
