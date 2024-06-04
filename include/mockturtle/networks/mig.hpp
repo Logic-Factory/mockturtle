@@ -848,8 +848,12 @@ public:
   {
     return --_storage->nodes[n].data[0].h1 & UINT32_C( 0x7FFFFFFF );
   }
-
   bool is_and( node const& n ) const
+  {
+    return n > 0 && !is_ci( n );
+  }
+
+  bool is_nand( node const& n ) const
   {
     (void)n;
     return false;
@@ -861,7 +865,31 @@ public:
     return false;
   }
 
+  bool is_nor( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
   bool is_xor( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_xnor( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_lt( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_le( node const& n ) const
   {
     (void)n;
     return false;
