@@ -32,7 +32,10 @@ enum class diag_id
   ERR_GTECH_OUTPUT_DECLARATION,
   ERR_GTECH_WIRE_DECLARATION,
   ERR_GTECH_ASSIGNMENT,
+  ERR_GTECH_GATE_ZERO,
+  ERR_GTECH_GATE_ONE,
   ERR_GTECH_GATE_NOT,
+  ERR_GTECH_GATE_INV,
   ERR_GTECH_GATE_BUF,
   ERR_GTECH_GATE_AND,
   ERR_GTECH_GATE_NAND,
@@ -68,43 +71,43 @@ enum class diag_id
 
 /*! pre-defined static diagnostics */
 static std::pair<diagnostic_level, std::string> const diag_info[] = {
-  { diagnostic_level::fatal,   "could not open file `{}`" },
-  { diagnostic_level::fatal,   "could not parse line `{}`" },
-  { diagnostic_level::warning, "unresolved dependencies: `{}` requires `{}`" },
-  { diagnostic_level::fatal,   "unsupported keyword `{}`" },
+    { diagnostic_level::fatal,   "could not open file `{}`" },
+    { diagnostic_level::fatal,   "could not parse line `{}`" },
+    { diagnostic_level::warning, "unresolved dependencies: `{}` requires `{}`" },
+    { diagnostic_level::fatal,   "unsupported keyword `{}`" },
 
-  /* AIGER */
-  { diagnostic_level::fatal, "could not parse AIGER header `{}`" },
-  { diagnostic_level::fatal, "could not parse declaration of LATCH `{}`" },
-  { diagnostic_level::fatal, "could not parse declaration of AND gate `{}`" },
+    /* AIGER */
+    { diagnostic_level::fatal, "could not parse AIGER header `{}`" },
+    { diagnostic_level::fatal, "could not parse declaration of LATCH `{}`" },
+    { diagnostic_level::fatal, "could not parse declaration of AND gate `{}`" },
 
-  /* BLIF */
-  { diagnostic_level::fatal, "latch format not supported `{}`" },
+    /* BLIF */
+    { diagnostic_level::fatal, "latch format not supported `{}`" },
 
-  /* VERILOG */
-  { diagnostic_level::fatal, "cannot parse module header" },
-  { diagnostic_level::fatal, "cannot parse input declaration" },
-  { diagnostic_level::fatal, "cannot parse output declaration" },
-  { diagnostic_level::fatal, "cannot parse wire declaration" },
-  { diagnostic_level::fatal, "cannot parse assign statement" },
-  { diagnostic_level::fatal, "cannot parse module instantiation statement" },
-  { diagnostic_level::fatal, "cannot instantiate module: module `{}` has not been declared (ensure that the module has been parsed before)" },
-  { diagnostic_level::fatal, "cannot instantiate module: pin `{}` has not been declared in module `{}`" },
-  { diagnostic_level::fatal, "cannot parse expression on right-hand side of assign `{}`" },
+    /* VERILOG */
+    { diagnostic_level::fatal, "cannot parse module header" },
+    { diagnostic_level::fatal, "cannot parse input declaration" },
+    { diagnostic_level::fatal, "cannot parse output declaration" },
+    { diagnostic_level::fatal, "cannot parse wire declaration" },
+    { diagnostic_level::fatal, "cannot parse assign statement" },
+    { diagnostic_level::fatal, "cannot parse module instantiation statement" },
+    { diagnostic_level::fatal, "cannot instantiate module: module `{}` has not been declared (ensure that the module has been parsed before)" },
+    { diagnostic_level::fatal, "cannot instantiate module: pin `{}` has not been declared in module `{}`" },
+    { diagnostic_level::fatal, "cannot parse expression on right-hand side of assign `{}`" },
 
-  /* DIMACS */
-  { diagnostic_level::fatal, "missing problem specification line" },
+    /* DIMACS */
+    { diagnostic_level::fatal, "missing problem specification line" },
 
-  /* GENLIB */
-  { diagnostic_level::fatal, "line `{}` has unexpected structure (expected `GATE <name> <area> <expression>;`)`" },
-  { diagnostic_level::fatal, "line `{}` does not start with keyword `GATE`" },
-  { diagnostic_level::fatal, "expression `{}` is not immediately terminated with `;`" },
-  { diagnostic_level::fatal, "unexpected `{}` token (expected `PIN`)" },
-  { diagnostic_level::fatal, "unknown PIN phase type `{}` (expected `INV`, `NONINV`, or `UNKNOWN`)" },
-  { diagnostic_level::fatal, "parsing failed at token `{}`" },
+    /* GENLIB */
+    { diagnostic_level::fatal, "line `{}` has unexpected structure (expected `GATE <name> <area> <expression>;`)`" },
+    { diagnostic_level::fatal, "line `{}` does not start with keyword `GATE`" },
+    { diagnostic_level::fatal, "expression `{}` is not immediately terminated with `;`" },
+    { diagnostic_level::fatal, "unexpected `{}` token (expected `PIN`)" },
+    { diagnostic_level::fatal, "unknown PIN phase type `{}` (expected `INV`, `NONINV`, or `UNKNOWN`)" },
+    { diagnostic_level::fatal, "parsing failed at token `{}`" },
 
-  /* SUPER */
-  { diagnostic_level::fatal, "line `{}` has unexpected structure (expected only one data)" },
-  { diagnostic_level::fatal, "line `{}` has a wrong structure (too few fields or exceeding the limit)" },
-  { diagnostic_level::fatal, "gate `{}` has a wrong number of fanin (zero or exceeding the limit)" },
+    /* SUPER */
+    { diagnostic_level::fatal, "line `{}` has unexpected structure (expected only one data)" },
+    { diagnostic_level::fatal, "line `{}` has a wrong structure (too few fields or exceeding the limit)" },
+    { diagnostic_level::fatal, "gate `{}` has a wrong number of fanin (zero or exceeding the limit)" },
 };

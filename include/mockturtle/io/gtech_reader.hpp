@@ -72,6 +72,8 @@ public:
     signals_["1"] = ntk_.get_constant( true );
     signals_["1'b0"] = ntk_.get_constant( false );
     signals_["1'b1"] = ntk_.get_constant( true );
+    signals_["1'h0"] = ntk_.get_constant( false );
+    signals_["1'h1"] = ntk_.get_constant( true );
   }
 
   void on_module_header( const std::string& module_name, const std::vector<std::string>& inouts ) const override
@@ -84,13 +86,15 @@ public:
 
     name_ = module_name;
     port_infors_.module_name = module_name;
+    if ( name_ != top_module_name_ )
+    {
+      std::cout << "warning:parser: current module name is not matching the given module name!" << std::endl;
+    }
   }
 
   void on_inputs( const std::vector<std::string>& names, std::string const& size = "" ) const override
   {
     (void)size;
-    if ( name_ != top_module_name_ )
-      return;
 
     for ( const auto& name : names )
     {
@@ -128,8 +132,6 @@ public:
   void on_outputs( const std::vector<std::string>& names, std::string const& size = "" ) const override
   {
     (void)size;
-    if ( name_ != top_module_name_ )
-      return;
 
     for ( const auto& name : names )
     {
@@ -156,8 +158,6 @@ public:
   void on_wires( const std::vector<std::string>& wires, std::string const& size = "" ) const override
   {
     (void)size;
-    if ( name_ != top_module_name_ )
-      return;
 
     for ( const auto& wire : wires )
     {
@@ -178,8 +178,6 @@ public:
 
   void on_assign( const std::string& lhs, const std::pair<std::string, bool>& rhs ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
 
     if ( signals_.find( rhs.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", rhs.first );
@@ -188,10 +186,18 @@ public:
     signals_[lhs] = rhs.second ? ntk_.create_not( r ) : r;
   }
 
+  void on_zero( const std::string& lhs ) const override
+  {
+    signals_[lhs] = ntk_.get_constant( false );
+  }
+
+  void on_one( const std::string& lhs ) const override
+  {
+    signals_[lhs] = ntk_.get_constant( true );
+  }
+
   void on_buf( const std::string& lhs, const std::pair<std::string, bool>& op1 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     auto a = signals_[op1.first];
@@ -200,8 +206,6 @@ public:
 
   void on_not( const std::string& lhs, const std::pair<std::string, bool>& op1 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     auto a = signals_[op1.first];
@@ -210,9 +214,6 @@ public:
 
   void on_and( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
-
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     if ( signals_.find( op2.first ) == signals_.end() )
@@ -225,8 +226,6 @@ public:
 
   void on_nand( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
 
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
@@ -240,8 +239,6 @@ public:
 
   void on_or( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
 
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
@@ -255,8 +252,6 @@ public:
 
   void on_nor( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
 
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
@@ -271,8 +266,6 @@ public:
 
   void on_xor( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
 
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
@@ -286,8 +279,6 @@ public:
 
   void on_xnor( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( name_ != top_module_name_ )
-      return;
 
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
@@ -304,8 +295,6 @@ public:
                                 std::vector<std::pair<std::string, std::string>> const& args ) const override
   {
     (void)inst_name;
-    if ( name_ != top_module_name_ )
-      return;
 
     /* check routines */
     const auto num_args_equals = [&]( uint32_t expected_count ) {
@@ -357,8 +346,6 @@ public:
 
   void on_endmodule() const override
   {
-    if ( name_ != top_module_name_ )
-      return;
 
     for ( auto const& o : outputs_ )
     {

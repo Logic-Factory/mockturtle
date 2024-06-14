@@ -41,6 +41,7 @@ namespace lorina
 namespace verilog_regex
 {
 static std::regex immediate_assign( R"(^(~)?\(?([[:alnum:]\[\]_']+)\)?$)" );
+static std::regex immediate_gtech_assign( R"(^(~)?\(?([[:alnum:]\[\]_'/]+)\)?$)" );
 static std::regex binary_expression( R"(^(~)?([[:alnum:]\[\]_']+)([&|^])(~)?([[:alnum:]\[\]_']+)$)" );
 static std::regex ternary_expression( R"(^(~)?([[:alnum:]\[\]_']+)([&|^?])(~)?([[:alnum:]\[\]_']+)([&|^:])(~)?([[:alnum:]\[\]_']+)$)" );
 static std::regex maj3_expression( R"(^\((~)?([[:alnum:]\[\]_']+)&(~)?([[:alnum:]\[\]_']+)\)\|\((~)?([[:alnum:]\[\]_']+)&(~)?([[:alnum:]\[\]_']+)\)\|\((~)?([[:alnum:]\[\]_']+)&(~)?([[:alnum:]\[\]_']+)\)$)" );

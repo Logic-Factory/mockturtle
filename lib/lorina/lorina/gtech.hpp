@@ -107,6 +107,24 @@ public:
     (void)args;
   }
 
+  /*! \brief Callback method for parsed constant `LHS = 1'b0;`.
+   *
+   * \param lhs Left-hand side of assignment
+   */
+  virtual void on_zero( const std::string& lhs ) const
+  {
+    (void)lhs;
+  }
+
+  /*! \brief Callback method for parsed constant `LHS = 1'b1;`.
+   *
+   * \param lhs Left-hand side of assignment
+   */
+  virtual void on_one( const std::string& lhs ) const
+  {
+    (void)lhs;
+  }
+
   /*! \brief Callback method for parsed BUF-gate with 1 operands `LHS = OP1;`.
    *
    * \param lhs Left-hand side of assignment
@@ -343,6 +361,16 @@ public:
     _os << ")";
 
     _os << ";\n";
+  }
+
+  void on_zero( const std::string& lhs ) const override
+  {
+    _os << fmt::format( "assign {} = 1'b0;\n", lhs );
+  }
+
+  void on_one( const std::string& lhs ) const override
+  {
+    _os << fmt::format( "assign {} = 1'b1;\n", lhs );
   }
 
   void on_not( const std::string& lhs, const std::pair<std::string, bool>& op1 ) const override
@@ -727,6 +755,16 @@ public:
                                                                              assert( inputs.size() == 1u );
                                                                              reader.on_assign( output, inputs[0] );
                                                                            }
+                                                                           else if ( type == "zero" )
+                                                                           {
+                                                                             assert( inputs.size() == 0u );
+                                                                             reader.on_zero( output );
+                                                                           }
+                                                                           else if ( type == "one" )
+                                                                           {
+                                                                             assert( inputs.size() == 0u );
+                                                                             reader.on_one( output );
+                                                                           }
                                                                            else if ( type == "not" )
                                                                            {
                                                                              assert( inputs.size() == 1u );
@@ -785,10 +823,14 @@ public:
     on_action.declare_known( "1" );
     on_action.declare_known( "1'b0" );
     on_action.declare_known( "1'b1" );
+    on_action.declare_known( "1'h0" );
+    on_action.declare_known( "1'h1" );
     set_all_wires.insert( "0" );
     set_all_wires.insert( "1" );
     set_all_wires.insert( "1'b0" );
     set_all_wires.insert( "1'b1" );
+    set_all_wires.insert( "1'h0" );
+    set_all_wires.insert( "1'h1" );
   }
 
   bool get_token( std::string& token )
@@ -972,6 +1014,30 @@ public:
           return false;
         }
       }
+      else if ( token == "zero" )
+      {
+        success = parse_zero();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_ZERO );
+          }
+          return false;
+        }
+      }
+      else if ( token == "one" )
+      {
+        success = parse_one();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_ONE );
+          }
+          return false;
+        }
+      }
       else if ( token == "not" )
       {
         success = parse_not();
@@ -986,7 +1052,7 @@ public:
       }
       else if ( token == "inv" )
       {
-        success = parse_not();
+        success = parse_inv();
         if ( !success )
         {
           if ( diag )
@@ -1448,6 +1514,54 @@ public:
     return true;
   }
 
+  bool parse_zero()
+  {
+    if ( token != "zero" )
+      return false;
+    std::string lhs;
+
+    bool success = parse_general_zeronate_expression( lhs );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_ZERO )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{};
+    on_action.call_deferred<GATE_FN>( /* dependencies */ {}, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "zero" ) );
+    return true;
+  }
+
+  bool parse_one()
+  {
+    if ( token != "one" )
+      return false;
+    std::string lhs;
+
+    bool success = parse_general_zeronate_expression( lhs );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_ONE )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{};
+    on_action.call_deferred<GATE_FN>( /* dependencies */ {}, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "one" ) );
+    return true;
+  }
+
   bool parse_not()
   {
     if ( token != "not" )
@@ -1470,6 +1584,31 @@ public:
     std::vector<std::pair<std::string, bool>> args{ op1 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first }, { lhs },
                                       /* gate-function params */ std::make_tuple( args, lhs, "not" ) );
+    return true;
+  }
+
+  bool parse_inv()
+  {
+    if ( token != "inv" )
+      return false;
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+
+    bool success = parse_general_unate_expression( lhs, op1 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_INV )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "inv" ) );
     return true;
   }
 
@@ -1669,6 +1808,79 @@ public:
     }
     return trim_str( port );
   };
+
+  bool parse_general_zeronate_expression( std::string& lhs )
+  {
+    // Parse the gate name
+    valid = get_token( token );
+    if ( !valid )
+      return false;
+
+    // Check whether this gate has been processed
+    if ( set_gates_been_processed.find( token ) != set_gates_been_processed.end() )
+      return true;
+
+    set_gates_been_processed.insert( token );
+
+    valid = get_token( token );
+    if ( !valid || token != "(" )
+      return false;
+
+    // Parse the line within parentheses
+    std::string line;
+    std::stack<std::string> paren_stk;
+    paren_stk.push( "(" );
+
+    while ( valid && !paren_stk.empty() && token != ";" )
+    {
+      valid = get_token( token );
+
+      if ( !valid )
+        return false;
+
+      if ( token == "(" )
+      {
+        paren_stk.push( "(" );
+      }
+      else if ( token == ")" )
+      {
+        paren_stk.pop();
+        if ( paren_stk.empty() )
+          break;
+      }
+
+      line += token + " ";
+    }
+
+    if ( token != ")" )
+      return false;
+
+    // Remove trailing spaces
+    line.erase( line.find_last_not_of( " \n\r\t" ) + 1 );
+
+    // Split line by commas and dots
+    std::istringstream iss( line );
+    std::vector<std::string> words;
+    std::string word;
+    while ( std::getline( iss, word, ',' ) )
+    {
+      // Remove leading and trailing spaces
+      std::string port = parse_port( word );
+      words.push_back( port );
+    }
+
+    // Ensure that there are exactly two elements
+    if ( words.size() != 1 )
+      return false;
+
+    // Parse the output (lhs) and input (op1)
+    lhs = words[0];
+    if ( set_all_wires.find( lhs ) == set_all_wires.end() )
+      return false;
+
+    valid = get_token( token );
+    return ( valid && token == ";" );
+  }
 
   bool parse_general_unate_expression( std::string& lhs, std::pair<std::string, bool>& op1 )
   {
@@ -2035,7 +2247,7 @@ public:
     } while ( token != ";" && token != "assign" && token != "endmodule" );
 
     std::smatch sm;
-    if ( std::regex_match( s, sm, verilog_regex::immediate_assign ) )
+    if ( std::regex_match( s, sm, verilog_regex::immediate_gtech_assign ) )
     {
       assert( sm.size() == 3u );
       std::vector<std::pair<std::string, bool>> args{ { sm[2], sm[1] == "~" } };
