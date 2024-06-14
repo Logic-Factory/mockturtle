@@ -212,6 +212,14 @@ public:
     signals_[lhs] = ntk_.create_not( a );
   }
 
+  void on_inv( const std::string& lhs, const std::pair<std::string, bool>& op1 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    auto a = signals_[op1.first];
+    signals_[lhs] = ntk_.create_not( a );
+  }
+
   void on_and( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
     if ( signals_.find( op1.first ) == signals_.end() )

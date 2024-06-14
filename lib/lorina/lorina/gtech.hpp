@@ -147,6 +147,17 @@ public:
     (void)op1;
   }
 
+  /*! \brief Callback method for parsed NOT-gate with 1 operands `LHS = !OP1;`.
+   *
+   * \param lhs Left-hand side of assignment
+   * \param op1 operand1 of assignment
+   */
+  virtual void on_inv( const std::string& lhs, const std::pair<std::string, bool>& op1 ) const
+  {
+    (void)lhs;
+    (void)op1;
+  }
+
   /*! \brief Callback method for parsed AND-gate with 2 operands `LHS = OP1 & OP2 ;`.
    *
    * \param lhs Left-hand side of assignment
@@ -374,6 +385,12 @@ public:
   }
 
   void on_not( const std::string& lhs, const std::pair<std::string, bool>& op1 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    _os << fmt::format( "assign {} = ! {};\n", lhs, p1 );
+  }
+
+  void on_inv( const std::string& lhs, const std::pair<std::string, bool>& op1 ) const override
   {
     const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
     _os << fmt::format( "assign {} = ! {};\n", lhs, p1 );
@@ -661,6 +678,13 @@ public:
     _os << fmt::format( "  assign {} = ~{};\n", lhs, p1 );
   }
 
+  void on_inv( const std::string& lhs, std::vector<std::pair<bool, std::string>> const& ins ) const
+  {
+    assert( ins.size() == 1 );
+    const std::string p1 = ins.at( 0 ).first ? fmt::format( "~{}", ins.at( 0 ).second ) : ins.at( 0 ).second;
+    _os << fmt::format( "  assign {} = ~{};\n", lhs, p1 );
+  }
+
   void on_buf( const std::string& lhs, std::vector<std::pair<bool, std::string>> const& ins ) const
   {
     assert( ins.size() == 1 );
@@ -769,6 +793,11 @@ public:
                                                                            {
                                                                              assert( inputs.size() == 1u );
                                                                              reader.on_not( output, inputs[0] );
+                                                                           }
+                                                                           else if ( type == "inv" )
+                                                                           {
+                                                                             assert( inputs.size() == 1u );
+                                                                             reader.on_inv( output, inputs[0] );
                                                                            }
                                                                            else if ( type == "buf" )
                                                                            {
