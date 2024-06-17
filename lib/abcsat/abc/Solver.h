@@ -26,8 +26,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Glucose_Solver_h
-#define Glucose_Solver_h
+#pragma once
 
 #include "Vec.h"
 #include "Heap.h"
@@ -36,7 +35,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "BoundedQueue.h"
 #include "Constants.h"
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 namespace Gluco {
 
@@ -488,6 +487,4 @@ inline void Solver::printInitialClause(CRef cr)
 //=================================================================================================
 }
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END

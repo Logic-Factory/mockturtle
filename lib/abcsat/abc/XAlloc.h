@@ -18,8 +18,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 **************************************************************************************************/
 
 
-#ifndef Glucose_XAlloc_h
-#define Glucose_XAlloc_h
+#pragma once
 
 #include <errno.h>
 #include <stdlib.h>
@@ -27,7 +26,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "abc_namespaces.h"
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 namespace Gluco {
 
@@ -48,6 +47,4 @@ static inline void* xrealloc(void *ptr, size_t size)
 //=================================================================================================
 }
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END

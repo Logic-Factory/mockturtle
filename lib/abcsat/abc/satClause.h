@@ -18,8 +18,7 @@
 
 ***********************************************************************/
  
-#ifndef ABC__sat__bsat__satMem_h
-#define ABC__sat__bsat__satMem_h
+#pragma once
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -32,7 +31,7 @@
 
 #include <abc/abc_global.h>
 
-ABC_LSILS_NAMESPACE_HEADER_START
+ABC_ABCSAT_NAMESPACE_HEADER_START
 
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
@@ -471,12 +470,10 @@ static inline int Sat_MemCompactLearned( Sat_Mem_t * p, int fDoMove )
 }
 
 
-ABC_LSILS_NAMESPACE_HEADER_END
+ABC_ABCSAT_NAMESPACE_HEADER_END
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif
-
 #endif
 
 ////////////////////////////////////////////////////////////////////////

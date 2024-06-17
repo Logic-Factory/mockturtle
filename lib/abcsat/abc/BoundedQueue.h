@@ -20,12 +20,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 **************************************************************************************************/
 
 
-#ifndef BoundedQueue_h
-#define BoundedQueue_h
+#pragma once
 
 #include "Vec.h"
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 //=================================================================================================
 
@@ -109,6 +108,4 @@ public:
 }
 //=================================================================================================
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END

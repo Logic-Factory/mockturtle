@@ -12,8 +12,8 @@
     disable : 4018 4127 4189 4200 4242 4244 4245 4305 4365 4388 4389 4456 4457 4459 4514 4552 4571 4583 4619 4623 4625 4626 4706 4710 4711 4774 4820 4820 4996 5026 5027 5039)
 #include "../solver/ghack.hpp"
 #include "../solver/glucose.hpp"
-#define ABC_LSILS_USE_NAMESPACE pabc
-#define ABC_LSILS_NAMESPACE pabc
+#define ABC_ABCSAT_USE_NAMESPACE pabc
+#define ABC_ABCSAT_NAMESPACE pabc
 #define ABC_USE_NO_READLINE
 #include "../solver/abc.hpp"
 #pragma warning(pop)
@@ -34,8 +34,8 @@
 #ifndef LIN64
 #define LIN64
 #endif
-#define ABC_LSILS_USE_NAMESPACE pabc
-#define ABC_LSILS_NAMESPACE pabc
+#define ABC_ABCSAT_USE_NAMESPACE pabc
+#define ABC_ABCSAT_NAMESPACE pabc
 #define ABC_USE_NO_READLINE
 #include "../solver/abc.hpp"
 #pragma GCC diagnostic pop

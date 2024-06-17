@@ -18,12 +18,11 @@
 
 ***********************************************************************/
 
-#ifndef ABC__sat__Xdbl__Xdbl_h
-#define ABC__sat__Xdbl__Xdbl_h
+#pragma once
 
 #include <abc/abc_global.h>
 
-ABC_LSILS_NAMESPACE_HEADER_START
+ABC_ABCSAT_NAMESPACE_HEADER_START
 
 ////////////////////////////////////////////////////////////////////////
 ///                    STRUCTURE DEFINITIONS                         ///
@@ -219,6 +218,4 @@ static inline void Xdbl_Test()
     assert( mul1 == c3 );
 }
 
-ABC_LSILS_NAMESPACE_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_HEADER_END

@@ -18,13 +18,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 **************************************************************************************************/
 
 
-#ifndef Glucose_Alloc_h
-#define Glucose_Alloc_h
+#pragma once
 
 #include "XAlloc.h"
 #include "Vec.h"
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 namespace Gluco {
 
@@ -131,6 +130,4 @@ RegionAllocator<T>::alloc(int size)
 //=================================================================================================
 }
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END

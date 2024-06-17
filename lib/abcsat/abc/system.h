@@ -18,13 +18,12 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Glucose_System_h
-#define Glucose_System_h
+#pragma once
 
 
 #include "IntTypes.h"
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 //-------------------------------------------------------------------------------------------------
 
@@ -34,7 +33,7 @@ static inline double cpuTime(void); // CPU-time in seconds.
 
 }
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END
 
 //-------------------------------------------------------------------------------------------------
 // Implementation of inline functions:
@@ -42,11 +41,11 @@ ABC_LSILS_NAMESPACE_CXX_HEADER_END
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <time.h>
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 static inline double Gluco::cpuTime(void) { return (double)clock() / CLOCKS_PER_SEC; }
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END
 
 
 #else
@@ -54,15 +53,13 @@ ABC_LSILS_NAMESPACE_CXX_HEADER_END
 #include <sys/resource.h>
 #include <unistd.h>
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 static inline double Gluco::cpuTime(void) {
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
     return (double)ru.ru_utime.tv_sec + (double)ru.ru_utime.tv_usec / 1000000; }
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END
 
 #endif

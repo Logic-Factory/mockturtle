@@ -18,8 +18,7 @@
 
 ***********************************************************************/
  
-#ifndef ABC__misc__vec__vecWec_h
-#define ABC__misc__vec__vecWec_h
+#pragma once
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -32,7 +31,7 @@
 
 #include <stdio.h>
 
-ABC_LSILS_NAMESPACE_HEADER_START
+ABC_ABCSAT_NAMESPACE_HEADER_START
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -710,12 +709,10 @@ static inline void Vec_WecRemoveEmpty( Vec_Wec_t * vCubes )
 }
 
 
-ABC_LSILS_NAMESPACE_HEADER_END
+ABC_ABCSAT_NAMESPACE_HEADER_END
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif
-
 #endif
 
 ////////////////////////////////////////////////////////////////////////

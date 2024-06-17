@@ -18,14 +18,13 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#ifndef Glucose_SimpSolver_h
-#define Glucose_SimpSolver_h
+#pragma once
 
 #include "Queue.h"
 #include "Solver.h"
 #include "abc_global.h"
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_START
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_START
 
 namespace Gluco {
 
@@ -203,6 +202,4 @@ inline void SimpSolver::addVar(Var v) { while (v >= nVars()) newVar(); }
 //=================================================================================================
 }
 
-ABC_LSILS_NAMESPACE_CXX_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_CXX_HEADER_END

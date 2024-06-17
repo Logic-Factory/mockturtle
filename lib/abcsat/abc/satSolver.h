@@ -19,8 +19,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 **************************************************************************************************/
 // Modified to compile with MS Visual Studio 6.0 by Alan Mishchenko
 
-#ifndef ABC__sat__bsat__satSolver_h
-#define ABC__sat__bsat__satSolver_h
+#pragma once
 
 
 #include <stdio.h>
@@ -32,7 +31,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "satClause.h"
 #include <abc/utilDouble.h>
 
-ABC_LSILS_NAMESPACE_HEADER_START
+ABC_ABCSAT_NAMESPACE_HEADER_START
 
 //=================================================================================================
 // Public interface:
@@ -656,6 +655,4 @@ static inline int sat_solver_add_half_sorter( sat_solver * pSat, int iVarA, int 
 }
 
 
-ABC_LSILS_NAMESPACE_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_HEADER_END

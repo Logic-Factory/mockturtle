@@ -18,8 +18,7 @@
 
 ***********************************************************************/
 
-#ifndef ABC_SAT_GLUCOSE_H_
-#define ABC_SAT_GLUCOSE_H_
+#pragma once
 
 #include "abc/abc_global.h"
 
@@ -37,7 +36,7 @@
 #define GLUCOSE_UNDEC  0
 
 
-ABC_LSILS_NAMESPACE_HEADER_START
+ABC_ABCSAT_NAMESPACE_HEADER_START
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -97,9 +96,7 @@ extern int               bmcg_sat_solver_add_and( bmcg_sat_solver * s, int iVar,
 
 extern void              Glucose_SolveCnf( char * pFilename, Glucose_Pars * pPars );
 
-ABC_LSILS_NAMESPACE_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_HEADER_END
 
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///

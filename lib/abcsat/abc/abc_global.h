@@ -18,8 +18,7 @@
 
 ***********************************************************************/
 
-#ifndef ABC__misc__util__abc_global_h
-#define ABC__misc__util__abc_global_h
+#pragma once
 
 ////////////////////////////////////////////////////////////////////////
 ///                          INCLUDES                                ///
@@ -97,7 +96,7 @@
 ///                         PARAMETERS                               ///
 ////////////////////////////////////////////////////////////////////////
 
-ABC_LSILS_NAMESPACE_HEADER_START
+ABC_ABCSAT_NAMESPACE_HEADER_START
 
 ////////////////////////////////////////////////////////////////////////
 ///                         BASIC TYPES                              ///
@@ -409,12 +408,10 @@ extern void   Abc_QuickSortCostData( int * pCosts, int nSize, int fDecrease, wor
 extern int *  Abc_QuickSortCost( int * pCosts, int nSize, int fDecrease );
 
 
-ABC_LSILS_NAMESPACE_HEADER_END
+ABC_ABCSAT_NAMESPACE_HEADER_END
 
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif
-
 #endif
 
 ////////////////////////////////////////////////////////////////////////

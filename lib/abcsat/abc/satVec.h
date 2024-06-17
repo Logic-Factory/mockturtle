@@ -19,12 +19,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 **************************************************************************************************/
 // Modified to compile with MS Visual Studio 6.0 by Alan Mishchenko
 
-#ifndef ABC__sat__bsat__satVec_h
-#define ABC__sat__bsat__satVec_h
+#pragma once
 
 #include <abc/abc_global.h>
 
-ABC_LSILS_NAMESPACE_HEADER_START
+ABC_ABCSAT_NAMESPACE_HEADER_START
 
 
 // vector of 32-bit intergers (added for 64-bit portability)
@@ -162,6 +161,4 @@ struct stats_t
 };
 typedef struct stats_t stats_t;
 
-ABC_LSILS_NAMESPACE_HEADER_END
-
-#endif
+ABC_ABCSAT_NAMESPACE_HEADER_END
