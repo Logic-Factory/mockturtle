@@ -32,7 +32,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "satClause.h"
 #include "utilDouble.h"
 
-ABC_NAMESPACE_HEADER_START
+ABC_LSILS_NAMESPACE_HEADER_START
 
 //=================================================================================================
 // Public interface:
@@ -646,6 +646,6 @@ static inline int sat_solver_add_half_sorter( sat_solver * pSat, int iVarA, int 
 }
 
 
-ABC_NAMESPACE_HEADER_END
+ABC_LSILS_NAMESPACE_HEADER_END
 
 #endif

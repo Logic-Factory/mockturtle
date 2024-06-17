@@ -36,7 +36,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "BoundedQueue.h"
 #include "Constants.h"
 
-ABC_NAMESPACE_CXX_HEADER_START
+ABC_LSILS_NAMESPACE_CXX_HEADER_START
 
 namespace Gluco {
 
@@ -488,6 +488,6 @@ inline void Solver::printInitialClause(CRef cr)
 //=================================================================================================
 }
 
-ABC_NAMESPACE_CXX_HEADER_END
+ABC_LSILS_NAMESPACE_CXX_HEADER_END
 
 #endif

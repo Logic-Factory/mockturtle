@@ -23,7 +23,7 @@
 
 #include "abc_global.h"
 
-ABC_NAMESPACE_HEADER_START
+ABC_LSILS_NAMESPACE_HEADER_START
 
 ////////////////////////////////////////////////////////////////////////
 ///                    STRUCTURE DEFINITIONS                         ///
@@ -217,6 +217,6 @@ static inline void Xdbl_Test()
     assert( mul1 == c3 );
 }
 
-ABC_NAMESPACE_HEADER_END
+ABC_LSILS_NAMESPACE_HEADER_END
 
 #endif

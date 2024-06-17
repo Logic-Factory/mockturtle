@@ -25,7 +25,7 @@
 
 #include <abc/satStore.h>
 
-ABC_NAMESPACE_IMPL_START
+ABC_LSILS_NAMESPACE_IMPL_START
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -465,5 +465,5 @@ Sto_Man_t * Sto_ManLoadClauses( char * pFileName )
 ////////////////////////////////////////////////////////////////////////
 
 
-ABC_NAMESPACE_IMPL_END
+ABC_LSILS_NAMESPACE_IMPL_END
 

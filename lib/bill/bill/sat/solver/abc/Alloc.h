@@ -24,7 +24,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "XAlloc.h"
 #include "Vec.h"
 
-ABC_NAMESPACE_CXX_HEADER_START
+ABC_LSILS_NAMESPACE_CXX_HEADER_START
 
 namespace Gluco {
 
@@ -131,6 +131,6 @@ RegionAllocator<T>::alloc(int size)
 //=================================================================================================
 }
 
-ABC_NAMESPACE_CXX_HEADER_END
+ABC_LSILS_NAMESPACE_CXX_HEADER_END
 
 #endif

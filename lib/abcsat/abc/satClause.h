@@ -32,7 +32,7 @@
 
 #include <abc/abc_global.h>
 
-ABC_NAMESPACE_HEADER_START
+ABC_LSILS_NAMESPACE_HEADER_START
 
 ////////////////////////////////////////////////////////////////////////
 ///                         PARAMETERS                               ///
@@ -471,7 +471,7 @@ static inline int Sat_MemCompactLearned( Sat_Mem_t * p, int fDoMove )
 }
 
 
-ABC_NAMESPACE_HEADER_END
+ABC_LSILS_NAMESPACE_HEADER_END
 
 #ifdef _MSC_VER
 #pragma warning(pop)

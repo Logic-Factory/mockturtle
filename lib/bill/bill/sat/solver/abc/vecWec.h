@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 
-ABC_NAMESPACE_HEADER_START
+ABC_LSILS_NAMESPACE_HEADER_START
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -706,7 +706,7 @@ static inline void Vec_WecRemoveEmpty( Vec_Wec_t * vCubes )
 }
 
 
-ABC_NAMESPACE_HEADER_END
+ABC_LSILS_NAMESPACE_HEADER_END
 
 #endif
 

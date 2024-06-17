@@ -24,7 +24,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "abc_global.h"
 
-ABC_NAMESPACE_HEADER_START
+ABC_LSILS_NAMESPACE_HEADER_START
 
 
 // vector of 32-bit intergers (added for 64-bit portability)
@@ -162,6 +162,6 @@ struct stats_t
 };
 typedef struct stats_t stats_t;
 
-ABC_NAMESPACE_HEADER_END
+ABC_LSILS_NAMESPACE_HEADER_END
 
 #endif
