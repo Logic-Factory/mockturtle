@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "detail/tokenizer.hpp"
+#include "detail/tokenizer_bit.hpp"
 #include "detail/utils.hpp"
 #include "diagnostics.hpp"
 #include "verilog_regex.hpp"
@@ -864,7 +864,7 @@ public:
 
   bool get_token( std::string& token )
   {
-    detail::tokenizer_return_code result;
+    detail::tokenizer_bit_return_code result;
     do
     {
       if ( tokens.empty() )
@@ -880,20 +880,20 @@ public:
       }
 
       /* switch to comment mode */
-      if ( token == "//" && result == detail::tokenizer_return_code::valid )
+      if ( token == "//" && result == detail::tokenizer_bit_return_code::valid )
       {
         tok.set_comment_mode();
       }
-      else if ( result == detail::tokenizer_return_code::comment )
+      else if ( result == detail::tokenizer_bit_return_code::comment )
       {
         reader.on_comment( token );
       }
       /* keep parsing if token is empty or if in the middle or at the end of a comment */
-    } while ( ( token == "" && result == detail::tokenizer_return_code::valid ) ||
+    } while ( ( token == "" && result == detail::tokenizer_bit_return_code::valid ) ||
               tok.get_comment_mode() ||
-              result == detail::tokenizer_return_code::comment );
+              result == detail::tokenizer_bit_return_code::comment );
 
-    return ( result == detail::tokenizer_return_code::valid );
+    return ( result == detail::tokenizer_bit_return_code::valid );
   }
 
   void push_token( std::string const& token )
@@ -2440,7 +2440,7 @@ private:
   using PackedFns = detail::FuncPackN<GateFn, ModuleInstFn>;
 
 private:
-  detail::tokenizer tok;
+  detail::tokenizer_bit tok;
   const gtech_reader& reader;
   diagnostic_engine* diag;
 
