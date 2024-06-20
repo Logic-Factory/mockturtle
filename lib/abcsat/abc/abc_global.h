@@ -284,8 +284,8 @@ static inline abctime Abc_Clock()
 // bridge communication
 #define BRIDGE_NETLIST           106
 #define BRIDGE_ABS_NETLIST       107
-extern int Gia_ManToBridgeText( FILE * pFile, int Size, unsigned char * pBuffer );
-extern int Gia_ManToBridgeAbsNetlist( FILE * pFile, void * p, int pkg_type );
+// extern int Gia_ManToBridgeText( FILE * pFile, int Size, unsigned char * pBuffer );
+// extern int Gia_ManToBridgeAbsNetlist( FILE * pFile, void * p, int pkg_type );
 
 // string printing
 extern char * vnsprintf(const char* format, va_list args);
@@ -313,16 +313,18 @@ static inline void Abc_Print( int level, const char * format, ... )
             printf( "Warning: " );
     }else{
         if ( level == ABC_ERROR )
-            Gia_ManToBridgeText( stdout, (int)strlen("Error: "), (unsigned char*)"Error: " );
+            // Gia_ManToBridgeText( stdout, (int)strlen("Error: "), (unsigned char*)"Error: " );
+            ;
         else if ( level == ABC_WARNING )
-            Gia_ManToBridgeText( stdout, (int)strlen("Warning: "), (unsigned char*)"Warning: " );
+            // Gia_ManToBridgeText( stdout, (int)strlen("Warning: "), (unsigned char*)"Warning: " );
+            ;
     }
 
     va_start( args, format );
     if ( Abc_FrameIsBridgeMode() )
     {
         char * tmp = vnsprintf( format, args );
-        Gia_ManToBridgeText( stdout, (int)strlen(tmp), (unsigned char*)tmp );
+        // Gia_ManToBridgeText( stdout, (int)strlen(tmp), (unsigned char*)tmp );
         free( tmp );
     }
     else
