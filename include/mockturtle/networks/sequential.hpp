@@ -37,6 +37,7 @@
 #include "aqfp.hpp"
 #include "cover.hpp"
 #include "detail/foreach.hpp"
+#include "gtg.hpp"
 #include "klut.hpp"
 #include "mig.hpp"
 #include "xag.hpp"
