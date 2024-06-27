@@ -71,6 +71,10 @@ struct is_aig_like<xmg_network> : std::true_type
 {
 };
 template<>
+struct is_aig_like<gtg_network> : std::true_type
+{
+};
+template<>
 struct is_aig_like<aqfp_network> : std::true_type
 {
 };
