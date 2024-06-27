@@ -360,7 +360,7 @@ public:
   {
     static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, xag_network> ||
                        std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> ||
-                       std::is_same_v<base_type, aqfp_network>,
+                       std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
                    "Sequential interfaces extended for unknown network type. Please check the compatibility of implementations." );
   }
 
@@ -369,7 +369,7 @@ public:
   {
     static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, xag_network> ||
                        std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> ||
-                       std::is_same_v<base_type, aqfp_network>,
+                       std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
                    "Sequential interfaces extended for unknown network type. Please check the compatibility of implementations." );
   }
 

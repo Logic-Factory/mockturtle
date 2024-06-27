@@ -93,6 +93,16 @@ public:
   using node = typename Ntk::node;
 
 public:
+  binding_view()
+      : Ntk(), _library( std::vector<gate>{} ), _bindings( *this )
+  {
+    static_assert( is_network_type_v<Ntk>, "Ntk is not a network type" );
+    static_assert( has_foreach_node_v<Ntk>, "Ntk does not implement the foreach_node method" );
+    static_assert( has_foreach_fanin_v<Ntk>, "Ntk does not implement the foreach_fanin method" );
+    static_assert( has_is_constant_v<Ntk>, "Ntk does not implement the is_constant method" );
+    static_assert( has_is_pi_v<Ntk>, "Ntk does not implement the is_pi method" );
+  }
+
   explicit binding_view( std::vector<gate> const& library )
       : Ntk(), _library{ library }, _bindings( *this )
   {
@@ -119,6 +129,11 @@ public:
     _library = binding_ntk._library;
     _bindings = binding_ntk._bindings;
     return *this;
+  }
+
+  void set_library( std::vector<gate> const& library )
+  {
+    _library = library;
   }
 
   void add_binding( node const& n, uint32_t gate_id )
