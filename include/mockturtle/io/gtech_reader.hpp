@@ -11,6 +11,7 @@
 
 #include "fmt/format.h"
 #include "lorina/gtech.hpp"
+#include "mockturtle/generators/modular_arithmetic.hpp"
 #include "mockturtle/traits.hpp"
 
 namespace mockturtle
