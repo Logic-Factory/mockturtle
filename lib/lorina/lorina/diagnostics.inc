@@ -30,13 +30,16 @@ enum class diag_id
   ERR_GTECH_MODULE_HEADER,
   ERR_GTECH_INPUT_DECLARATION,
   ERR_GTECH_OUTPUT_DECLARATION,
+  ERR_GTECH_OUTPUT_LATCH_DECLARATION,
   ERR_GTECH_WIRE_DECLARATION,
+  ERR_GTECH_INIT_DECLARATION,
   ERR_GTECH_ASSIGNMENT,
   ERR_GTECH_GATE_ZERO,
   ERR_GTECH_GATE_ONE,
   ERR_GTECH_GATE_NOT,
   ERR_GTECH_GATE_INV,
   ERR_GTECH_GATE_BUF,
+  ERR_GTECH_GATE_LATCH,
   ERR_GTECH_GATE_AND,
   ERR_GTECH_GATE_NAND,
   ERR_GTECH_GATE_OR,
@@ -68,13 +71,12 @@ enum class diag_id
   NUM_STATIC_ERROR_IDS,
 };
 
-
 /*! pre-defined static diagnostics */
 static std::pair<diagnostic_level, std::string> const diag_info[] = {
-    { diagnostic_level::fatal,   "could not open file `{}`" },
-    { diagnostic_level::fatal,   "could not parse line `{}`" },
+    { diagnostic_level::fatal, "could not open file `{}`" },
+    { diagnostic_level::fatal, "could not parse line `{}`" },
     { diagnostic_level::warning, "unresolved dependencies: `{}` requires `{}`" },
-    { diagnostic_level::fatal,   "unsupported keyword `{}`" },
+    { diagnostic_level::fatal, "unsupported keyword `{}`" },
 
     /* AIGER */
     { diagnostic_level::fatal, "could not parse AIGER header `{}`" },

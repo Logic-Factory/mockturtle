@@ -96,7 +96,6 @@ public:
   void on_inputs( const std::vector<std::string>& names, std::string const& size = "" ) const override
   {
     (void)size;
-
     for ( const auto& name : names )
     {
       if ( size.empty() )
@@ -155,7 +154,32 @@ public:
     }
   }
 
-  //! add by nlwmode: becasue wires maybe a bit-vector, so it is necessary to add on_wires methord, to check the wires!
+  /**
+   * @brief on latch
+   * @param lhs: Q
+   * @param op1: D
+   * @param init
+   */
+  void on_latch( const std::string& lhs, const std::pair<std::string, bool>& op1, latch_init_value init ) const override
+  {
+    latches_.push_back( std::make_tuple( lhs, op1.first, init ) );
+  }
+
+  void on_latch_output( const std::string& lhs ) const override
+  {
+    if constexpr ( has_create_ri_v<Ntk> && has_create_ro_v<Ntk> )
+    {
+      signals_[lhs] = ntk_.create_ro();
+    }
+  }
+
+  void on_latch_input( const std::string& lhs ) const override
+  {
+    if constexpr ( has_create_ri_v<Ntk> && has_create_ro_v<Ntk> )
+    {
+    }
+  }
+
   void on_wires( const std::vector<std::string>& wires, std::string const& size = "" ) const override
   {
     (void)size;
@@ -179,7 +203,6 @@ public:
 
   void on_assign( const std::string& lhs, const std::pair<std::string, bool>& rhs ) const override
   {
-
     if ( signals_.find( rhs.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", rhs.first );
 
@@ -235,7 +258,6 @@ public:
 
   void on_nand( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     if ( signals_.find( op2.first ) == signals_.end() )
@@ -248,7 +270,6 @@ public:
 
   void on_or( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     if ( signals_.find( op2.first ) == signals_.end() )
@@ -261,7 +282,6 @@ public:
 
   void on_nor( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     if ( signals_.find( op2.first ) == signals_.end() )
@@ -269,13 +289,11 @@ public:
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
-    // signals_[lhs] = ntk_.create_not( ntk_.create_or( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b ) );
     signals_[lhs] = ntk_.create_nor( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b );
   }
 
   void on_xor( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     if ( signals_.find( op2.first ) == signals_.end() )
@@ -288,7 +306,6 @@ public:
 
   void on_xnor( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-
     if ( signals_.find( op1.first ) == signals_.end() )
       fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
     if ( signals_.find( op2.first ) == signals_.end() )
@@ -296,7 +313,6 @@ public:
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
-    // signals_[lhs] = ntk_.create_not( ntk_.create_xor( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b ) );
     signals_[lhs] = ntk_.create_xnor( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b );
   }
 
@@ -359,6 +375,19 @@ public:
     for ( auto const& o : outputs_ )
     {
       ntk_.create_po( signals_[o] );
+    }
+
+    for ( auto const& l : latches_ )
+    {
+      if constexpr ( has_create_ri_v<Ntk> && has_create_ro_v<Ntk> )
+      {
+        auto Q = std::get<0>( l );
+        auto D = std::get<1>( l );
+        if ( signals_.find( D ) == signals_.end() )
+          fmt::print( stderr, "[w] undefined signal {} assigned 0\n", D );
+        auto a = signals_[D];
+        ntk_.create_ri( a );
+      }
     }
 
     if constexpr ( has_set_output_name_v<Ntk> )
@@ -455,6 +484,7 @@ private:
   mutable std::set<std::string> wires_;
   mutable std::vector<std::pair<std::string, uint32_t>> input_names_;
   mutable std::vector<std::pair<std::string, uint32_t>> output_names_;
+  mutable std::vector<std::tuple<std::string, std::string, latch_init_value>> latches_;
 
   read_verilog_params& port_infors_;
 

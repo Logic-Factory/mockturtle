@@ -23,6 +23,15 @@ namespace lorina
 class gtech_reader
 {
 public:
+  /*! Latch input values */
+  enum latch_init_value
+  {
+    ZERO = 0,
+    ONE,
+    NONDETERMINISTIC /*!< Not initialized (non-deterministic value) */
+  };
+
+public:
   /*! \brief Callback method for parsed module.
    *
    * \param module_name Name of the module
@@ -54,6 +63,37 @@ public:
   {
     (void)outputs;
     (void)size;
+  }
+
+  /*! \brief Callback method for parsed Flip Flop.
+   *
+   * \param D
+   * \param Q
+   */
+  virtual void on_latch( const std::string& D, const std::pair<std::string, bool>& Q, latch_init_value init ) const
+  {
+    (void)D;
+    (void)Q;
+    (void)init;
+  }
+
+  /*! \brief Callback method for parsed Flip Flop.
+   *
+   * \param D
+   * \param Q
+   */
+  virtual void on_latch_input( const std::string& Q ) const
+  {
+    (void)Q;
+  }
+
+  /*! \brief Callback method for parsed Flip Flop.
+   *
+   * \param Q
+   */
+  virtual void on_latch_output( const std::string& Q ) const
+  {
+    (void)Q;
   }
 
   /*! \brief Callback method for parsed wires.
@@ -318,6 +358,21 @@ public:
     _os << " ;\n";
   }
 
+  void on_latch( const std::string& D, const std::pair<std::string, bool>& Q, latch_init_value init ) const override
+  {
+    _os << fmt::format( "always @(posedge clk) begin\n\t{} <= {};\nend\n", Q.first, D );
+  }
+
+  void on_latch_input( const std::string& Q ) const override
+  {
+    (void)Q;
+  }
+
+  void on_latch_output( const std::string& Q ) const override
+  {
+    (void)Q;
+  }
+
   void on_wires( const std::vector<std::string>& wires, std::string const& size = "" ) const override
   {
     if ( wires.size() == 0 )
@@ -565,6 +620,36 @@ public:
     _os << fmt::format( "  output [{}:0] {} ;\n", width - 1, fmt::join( names, " , " ) );
   }
 
+  /*! \brief Callback method for writing multiple output registers.
+   *
+   * \param width Register size
+   * \param names Output names
+   */
+  virtual void on_latch( const std::string& D, const std::pair<std::string, bool>& Q, gtech_reader::latch_init_value init ) const
+  {
+    _os << fmt::format( "always @(posedge clk) begin\n\t{} <= {};\nend\n", Q.first, D );
+  }
+
+  /*! \brief Callback method for writing multiple output registers.
+   *
+   * \param width Register size
+   * \param names Output names
+   */
+  virtual void on_latch_input( const std::string& Q ) const
+  {
+    (void)Q;
+  }
+
+  /*! \brief Callback method for writing multiple output registers.
+   *
+   * \param width Register size
+   * \param names Output names
+   */
+  virtual void on_latch_output( const std::string& Q ) const
+  {
+    (void)Q;
+  }
+
   /*! \brief Callback method for writing single 1-bit wire.
    *
    * \param name Wire name
@@ -804,6 +889,12 @@ public:
                                                                              assert( inputs.size() == 1u );
                                                                              reader.on_buf( output, inputs[0] );
                                                                            }
+                                                                           else if ( type == "latch" )
+                                                                           {
+                                                                             assert( inputs.size() == 1u );
+                                                                             auto init = latches.find( inputs[0].first ) == latches.end() ? gtech_reader::latch_init_value::NONDETERMINISTIC : latches[inputs[0].first].second;
+                                                                             reader.on_latch( output, inputs[0], init );
+                                                                           }
                                                                            else if ( type == "and" )
                                                                            {
                                                                              assert( inputs.size() == 2u );
@@ -1019,6 +1110,18 @@ public:
           return false;
         }
       }
+      else if ( token == "output_latch" )
+      {
+        success = parse_output_latch();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_OUTPUT_LATCH_DECLARATION );
+          }
+          return false;
+        }
+      }
       else if ( token == "wire" )
       {
         success = parse_wires();
@@ -1027,6 +1130,18 @@ public:
           if ( diag )
           {
             diag->report( diag_id::ERR_GTECH_WIRE_DECLARATION );
+          }
+          return false;
+        }
+      }
+      else if ( token == "init" )
+      {
+        success = parse_init();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_INIT_DECLARATION );
           }
           return false;
         }
@@ -1099,6 +1214,18 @@ public:
           if ( diag )
           {
             diag->report( diag_id::ERR_GTECH_GATE_BUF );
+          }
+          return false;
+        }
+      }
+      else if ( token == "$_FF_" )
+      {
+        success = parse_latch();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_LATCH );
           }
           return false;
         }
@@ -1448,6 +1575,78 @@ public:
     return true;
   }
 
+  bool parse_output_latch()
+  {
+    std::vector<std::string> outputs;
+    if ( token != "output_latch" )
+      return false;
+
+    std::string size = "";
+    if ( !parse_signal_name() && token == "[" )
+    {
+      do
+      {
+        valid = get_token( token );
+        if ( !valid )
+          return false;
+
+        if ( token != "]" )
+          size += token;
+      } while ( valid && token != "]" );
+
+      if ( !parse_signal_name() )
+        return false;
+    }
+    outputs.emplace_back( token );
+
+    while ( true )
+    {
+      valid = get_token( token );
+
+      if ( !valid || ( token != "," && token != ";" ) )
+        return false;
+
+      if ( token == ";" )
+        break;
+
+      if ( !parse_signal_name() )
+        return false;
+
+      outputs.emplace_back( token );
+    }
+
+    // store all outputs
+    if ( size == "" )
+    {
+      for ( auto output : outputs )
+      {
+        set_wires_output.insert( output );
+        set_all_wires.insert( output );
+      }
+    }
+    else
+    {
+      for ( auto output : outputs )
+      {
+        detail::trim( size );
+        auto pos = size.find( ':' );
+        int length = std::atoi( size.substr( 0, pos ).c_str() );
+        for ( int i = 0; i <= length; ++i )
+        {
+          std::string tmp_output = output + "[" + std::to_string( i ) + "]";
+          set_wires_output.insert( tmp_output );
+          set_all_wires.insert( tmp_output );
+        }
+      }
+    }
+
+    /* callback */
+    reader.on_latch_output( outputs[0] );
+    on_action.declare_known( outputs[0] );
+
+    return true;
+  }
+
   bool parse_wires()
   {
     std::vector<std::string> wires;
@@ -1509,8 +1708,47 @@ public:
       }
     }
     // wires is the objects of this statement line , size is bus_wire ? "left:right" : ""
-    // 但是对于实际的电路转换来说，知道 input和output的 port name 就足够了
     reader.on_wires( wires, size );
+    return true;
+  }
+
+  bool parse_init()
+  {
+    if ( token != "init" )
+      return false;
+
+    std::string size = ""; // left:right
+    if ( !parse_signal_name() && token == "[" )
+    {
+      do
+      {
+        valid = get_token( token );
+        if ( !valid )
+          return false;
+
+        if ( token != "]" )
+          size += token;
+      } while ( valid && token != "]" );
+
+      if ( !parse_signal_name() )
+        return false;
+    }
+
+    std::string wire = token;
+    std::string init = "";
+    valid = get_token( token );
+    if ( !valid || ( token == "," && token == ";" ) )
+      return false;
+    init = token;
+    valid = get_token( token );
+    if ( !valid || ( token != "," && token != ";" ) )
+      return false;
+
+    detail::trim( wire );
+    detail::trim( init );
+
+    latches[wire].second = init == "1'h0" ? gtech_reader::latch_init_value::ZERO : gtech_reader::latch_init_value::ONE;
+
     return true;
   }
 
@@ -1665,6 +1903,34 @@ public:
                                       /* gate-function params */ std::make_tuple( args, lhs, "buf" ) );
     return true;
   }
+
+  bool parse_latch()
+  {
+    if ( token != "$_FF_" )
+      return false;
+    std::string lhs;                  // Q
+    std::pair<std::string, bool> op1; // D
+
+    bool success = parse_general_ff_expression( lhs, op1 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_LATCH )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    latches[lhs].first = op1.first;
+
+    std::vector<std::pair<std::string, bool>> args{ op1 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "latch" ) );
+    return true;
+  }
+
   bool parse_and()
   {
     if ( token != "and" )
@@ -1690,6 +1956,7 @@ public:
                                       /* gate-function params */ std::make_tuple( args, lhs, "and" ) );
     return true;
   }
+
   bool parse_nand()
   {
     if ( token != "nand" )
@@ -1715,6 +1982,7 @@ public:
                                       /* gate-function params */ std::make_tuple( args, lhs, "nand" ) );
     return true;
   }
+
   bool parse_or()
   {
     if ( token != "or" )
@@ -1740,6 +2008,7 @@ public:
                                       /* gate-function params */ std::make_tuple( args, lhs, "or" ) );
     return true;
   }
+
   bool parse_nor()
   {
     if ( token != "nor" )
@@ -1765,6 +2034,7 @@ public:
                                       /* gate-function params */ std::make_tuple( args, lhs, "nor" ) );
     return true;
   }
+
   bool parse_xor()
   {
     if ( token != "xor" )
@@ -1791,6 +2061,7 @@ public:
                                       /* gate-function params */ std::make_tuple( args, lhs, "xor" ) );
     return true;
   }
+
   bool parse_xnor()
   {
     if ( token != "xnor" )
@@ -1999,6 +2270,103 @@ public:
     return ( valid && token == ";" );
   }
 
+  /**
+   * @brief parse_general_ff_expression
+   *    \$_FF_  name (
+   *       .D(x),
+   *       .Q(y)
+   *    );
+   *    the signal direction is : D -> Q
+   *    thus, D is the operator, and Q is the lhs
+   */
+  bool parse_general_ff_expression( std::string& lhs, std::pair<std::string, bool>& op1 )
+  {
+    // Parse the gate name
+    valid = get_token( token );
+    if ( !valid )
+      return false;
+
+    // Check whether this gate has been processed
+    if ( set_gates_been_processed.find( token ) != set_gates_been_processed.end() )
+      return true;
+
+    set_gates_been_processed.insert( token );
+
+    valid = get_token( token );
+    if ( !valid || token != "(" )
+      return false;
+
+    // Parse the line within parentheses
+    std::string line;
+    std::stack<std::string> paren_stk;
+    paren_stk.push( "(" );
+
+    while ( valid && !paren_stk.empty() && token != ";" )
+    {
+      valid = get_token( token );
+
+      if ( !valid )
+        return false;
+
+      if ( token == "(" )
+      {
+        paren_stk.push( "(" );
+      }
+      else if ( token == ")" )
+      {
+        paren_stk.pop();
+        if ( paren_stk.empty() )
+          break;
+      }
+
+      line += token + " ";
+    }
+
+    if ( token != ")" )
+      return false;
+
+    // Remove trailing spaces
+    line.erase( line.find_last_not_of( " \n\r\t" ) + 1 );
+
+    // Split line by commas and dots
+    std::istringstream iss( line );
+    std::vector<std::string> words;
+    std::string word;
+    while ( std::getline( iss, word, ',' ) )
+    {
+      // Remove leading and trailing spaces
+      std::string port = parse_port( word );
+      words.push_back( port );
+    }
+
+    // Ensure that there are exactly two elements
+    if ( words.size() != 2 )
+      return false;
+
+    // D -> Q, thus Q is lhs, D is the operator
+    lhs = words[1];
+    if ( set_all_wires.find( lhs ) == set_all_wires.end() )
+      return false;
+
+    std::string input = parse_port( words[0] );
+    if ( input[0] == '~' )
+    {
+      op1.first = input.substr( 1 );
+      op1.second = true;
+    }
+    else
+    {
+      op1.first = input;
+      op1.second = false;
+    }
+
+    if ( set_all_wires.find( op1.first ) == set_all_wires.end() )
+      return false;
+
+    valid = get_token( token );
+    return ( valid && token == ";" );
+  }
+
   bool parse_general_binate_expression( std::string& lhs, std::pair<std::string, bool>& op1, std::pair<std::string, bool>& op2 )
   {
     // Parse the gate name
@@ -2121,6 +2489,7 @@ public:
 
     if ( token != ";" )
       return false;
+
     return true;
   }
 
@@ -2460,7 +2829,60 @@ private:
   std::unordered_set<std::string> set_wires_output;           // all output wires
   std::unordered_set<std::string> set_gates_been_processed;   // flag the processed gates
 
+  std::unordered_map<std::string, std::pair<std::string, gtech_reader::latch_init_value>> latches; // {Q, {D, init}}
+
 }; /* gtech_parser */
+
+/**
+ * @brief process the init setence
+ * @brief
+ *  before:
+ *    (* init = 1'h0 *)
+ *    wire y;
+ *
+ *  after:
+ *    wire y;	init y 1'h1;
+ */
+std::istringstream preproccess_latch_init( std::ifstream& infile )
+{
+  if ( !infile.is_open() )
+  {
+    std::cerr << "Unable to open file";
+    return;
+  }
+  std::ostringstream oss;
+
+  std::string content( ( std::istreambuf_iterator<char>( infile ) ),
+                       std::istreambuf_iterator<char>() );
+  infile.close();
+
+  std::regex pattern_wire( R"(\(\* init = 1'h(\d) \*\)\s*\n\s*wire (\w+);)" );
+  std::regex pattern_output( R"(\(\* init = 1'h(\d) \*\)\s*\n\s*output (\w+);)" );
+  std::string newContent;
+  std::string::const_iterator searchStart( content.cbegin() );
+  std::smatch matches;
+  // TODO: fix bugs here
+  while ( std::regex_search( searchStart, content.cend(), matches, pattern_wire ) )
+  {
+    std::string bitValue = matches[1].str() == "1" ? "0" : "1";
+    newContent += std::string( searchStart, matches[0].first );
+    newContent += "output_latch " + matches[2].str() + ";\t" + "wire " + matches[2].str() + ";\t" + "init " + matches[2].str() + " 1'h" + bitValue + ";";
+    searchStart = matches.suffix().first;
+  }
+  while ( std::regex_search( searchStart, content.cend(), matches, pattern_output ) )
+  {
+    std::string bitValue = matches[1].str() == "1" ? "0" : "1";
+    newContent += std::string( searchStart, matches[0].first );
+    newContent += "output " + matches[2].str() + ";\t" + "init " + matches[2].str() + " 1'h" + bitValue + ";";
+    searchStart = matches.suffix().first;
+  }
+  newContent += std::string( searchStart, content.cend() );
+
+  // std::cout << newContent << std::endl;
+  oss << newContent;
+  std::istringstream iss( oss.str() );
+  return iss;
+}
 
 /*! \brief Reader function for GTECH VERILOG format.
  *
@@ -2509,8 +2931,9 @@ private:
   }
   else
   {
-    auto const ret = read_gtech( in, reader, diag );
+    std::istringstream iss = preproccess_latch_init( in );
     in.close();
+    auto const ret = read_gtech( iss, reader, diag );
     return ret;
   }
 }
