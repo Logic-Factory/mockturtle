@@ -32,6 +32,10 @@
 
 #pragma once
 
+#ifdef cover
+#undef cover
+#endif
+
 #include <algorithm>
 #include <optional>
 #include <set>
