@@ -21,27 +21,15 @@
 namespace mockturtle
 {
 
-/*! \brief Hash function for GTGs (from ABC) */
-template<class Node>
-struct gtg_hash
-{
-  uint64_t operator()( Node const& n ) const
-  {
-    uint64_t seed = -2011;
-    seed += n.children[0].index * 7937;
-    seed += n.children[1].index * 2971;
-    seed += n.children[0].weight * 911;
-    seed += n.children[1].weight * 353;
-    return seed;
-  }
-};
-
 /**
  * @brief strcut gtg_storage_data
  */
 struct gtg_storage_data
 {
   mockturtle::truth_table_cache<kitty::dynamic_truth_table> cache;
+  uint32_t num_pis = 0u;
+  uint32_t num_pos = 0u;
+  uint32_t trav_id = 0u;
 };
 
 /*! \brief GTG storage container
@@ -55,17 +43,30 @@ struct gtg_storage_data
   `data[1].h1`: Visited flag
   `data[1].h2`: Function literal in truth table cache
 */
-using gtg_storage = storage<regular_node<2, 2, 1>,
-                            gtg_storage_data,
-                            gtg_hash<regular_node<2, 2, 1>>>;
+struct gtg_storage_node : mixed_fanin_node<2, 1>
+{
+  bool operator==( gtg_storage_node const& other ) const
+  {
+    return data[1].h2 == other.data[1].h2 && children == other.children; // same type node and same children
+  }
+};
 
+using gtg_storage = storage_no_hash<gtg_storage_node,
+                                    gtg_storage_data>;
+
+/**
+ * @brief Gtech Logic network
+ * @note this network is composed by the following types of logic gates:
+ *      unate  :  buffer, inverter,
+ *      binate :  and2, nand2, or2, nor2, xor2, xnor2,
+ *      trinate:  maj3, mux, xor3
+ */
 class gtg_network
 {
 public:
 #pragma region Types and constructors
-  static constexpr bool is_gtg_network_type = true;
   static constexpr auto min_fanin_size = 2u;
-  static constexpr auto max_fanin_size = 2u;
+  static constexpr auto max_fanin_size = 3u;
 
   using base_type = gtg_network;
   using storage = std::shared_ptr<gtg_storage>;
@@ -77,18 +78,15 @@ public:
 
     signal( uint64_t index, uint64_t complement )
         : complement( complement ), index( index )
-    {
-    }
+    {}
 
     explicit signal( uint64_t data )
         : data( data )
-    {
-    }
+    {}
 
     signal( gtg_storage::node_type::pointer_type const& p )
         : complement( p.weight ), index( p.index )
-    {
-    }
+    {}
 
     union
     {
@@ -151,14 +149,12 @@ public:
   gtg_network()
       : _storage( std::make_shared<gtg_storage>() ),
         _events( std::make_shared<decltype( _events )::element_type>() )
-  {
-  }
+  {}
 
   gtg_network( std::shared_ptr<gtg_storage> storage )
       : _storage( storage ),
         _events( std::make_shared<decltype( _events )::element_type>() )
-  {
-  }
+  {}
 
   gtg_network clone() const
   {
@@ -179,8 +175,6 @@ private:
    *     nand   ->      0111           5
    *     or     ->      1110           6
    *     nor    ->      0001           7
-   *     lt     ->      0100           8
-   *     le     ->      1101          11
    *     xor    ->      0110          12
    *     xnor   ->      1001          13
    *     maj    -> 1110,1000          14
@@ -207,16 +201,6 @@ private:
     kitty::dynamic_truth_table tt_or( 2 );
     kitty::create_from_words( tt_or, &_or, &_or + 1 );
     _storage->data.cache.insert( tt_or );
-
-    static uint64_t _lt = 0x4; // func-id 8
-    kitty::dynamic_truth_table tt_lt( 2 );
-    kitty::create_from_words( tt_lt, &_lt, &_lt + 1 );
-    _storage->data.cache.insert( tt_lt );
-
-    static uint64_t _le = 0xd; // func-id 11
-    kitty::dynamic_truth_table tt_le( 2 );
-    kitty::create_from_words( tt_le, &_le, &_le + 1 );
-    _storage->data.cache.insert( tt_le );
 
     static uint64_t _xor = 0x6; // func-id 12
     kitty::dynamic_truth_table tt_xor( 2 );
@@ -246,15 +230,14 @@ private:
    */
   signal _create_node( std::vector<signal> const& children, uint32_t literal )
   {
-    assert( children.size() == 2u );
+    assert( children.size() <= 3u );
 
-    storage::element_type::node_type tmp_node;
-    tmp_node.children = { children[0], children[1] };
-    tmp_node.data[1].h2 = literal;
+    storage::element_type::node_type node;
+    std::copy( children.begin(), children.end(), std::back_inserter( node.children ) );
+    node.data[1].h2 = literal;
 
     const auto index = _storage->nodes.size();
-    _storage->nodes.emplace_back( tmp_node );
-    _storage->hash[tmp_node] = index;
+    _storage->nodes.emplace_back( node );
 
     // increase ref-count to children
     for ( auto c : children )
@@ -370,12 +353,12 @@ public:
 
   signal create_lt( signal const& a, signal const& b )
   {
-    return _create_node( { a, b }, 8 );
+    return create_and( !a, b );
   }
 
   signal create_le( signal const& a, signal const& b )
   {
-    return _create_node( { a, b }, 11 );
+    return !create_and( a, !b );
   }
 
   signal create_xor( signal a, signal b )
@@ -432,38 +415,6 @@ public:
   }
 #pragma endregion
 
-#pragma region Has node
-  std::optional<signal> has_and( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_nand( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_or( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_nor( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_xor( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_xnor( signal a, signal b )
-  {
-    return {};
-  }
-#pragma endregion
-
 #pragma region Structural properties
   bool is_dead( node const& n ) const
   {
@@ -497,7 +448,8 @@ public:
 
   auto num_gates() const
   {
-    return static_cast<uint32_t>( _storage->hash.size() );
+    auto ngates = size() - num_cis() - 1;
+    return ngates;
   }
 
   uint32_t fanin_size( node const& n ) const
@@ -544,12 +496,12 @@ public:
 
   bool is_lt( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 8;
+    return false;
   }
 
   bool is_le( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 11;
+    return false;
   }
 
   bool is_xor( node const& n ) const
@@ -598,7 +550,6 @@ public:
 #pragma endregion
 
 #pragma region Functional properties
-
   bool is_function( node const& n ) const
   {
     return n > 1 && !is_pi( n );

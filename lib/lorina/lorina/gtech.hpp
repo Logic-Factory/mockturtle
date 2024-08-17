@@ -276,6 +276,30 @@ public:
     (void)op2;
   }
 
+  virtual void on_maj( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
+  virtual void on_ite( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
+  virtual void on_xor3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
   /*! \brief Callback method for parsed comments `// comment string`.
    *
    * \param comment Comment string
@@ -497,6 +521,30 @@ public:
     const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
     const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
     _os << fmt::format( "assign {} = ~({} ^ {}) ;\n", lhs, p1, p2 );
+  }
+
+  void on_maj( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ( {} & {} ) | ( {} & {} ) | ( {} & {} );\n", lhs, p1, p2, p1, p3, p2, p3 );
+  }
+
+  void on_ite( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ( {} ? {} : {} );\n", lhs, p1, p2, p3 );
+  }
+
+  void on_xor3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = {} ^ {} ^ {} ;\n", lhs, p1, p2, p3 );
   }
 
   void on_endmodule() const override
@@ -807,6 +855,27 @@ public:
     on_assign( lhs, ins, "^", false );
   }
 
+  void on_maj( const std::string& lhs, std::vector<std::pair<bool, std::string>> const& ins ) const
+  {
+    const std::string p1 = ins.at( 0 ).first ? fmt::format( "~{}", ins.at( 0 ).second ) : ins.at( 0 ).second;
+    const std::string p2 = ins.at( 1 ).first ? fmt::format( "~{}", ins.at( 1 ).second ) : ins.at( 1 ).second;
+    const std::string p3 = ins.at( 2 ).first ? fmt::format( "~{}", ins.at( 2 ).second ) : ins.at( 2 ).second;
+    _os << fmt::format( "assign {} = ( {} & {} ) | ( {} & {} ) | ( {} & {} );\n", lhs, p1, p2, p1, p3, p2, p3 );
+  }
+
+  void on_ite( const std::string& lhs, std::vector<std::pair<bool, std::string>> const& ins ) const
+  {
+    const std::string p1 = ins.at( 0 ).first ? fmt::format( "~{}", ins.at( 0 ).second ) : ins.at( 0 ).second;
+    const std::string p2 = ins.at( 1 ).first ? fmt::format( "~{}", ins.at( 1 ).second ) : ins.at( 1 ).second;
+    const std::string p3 = ins.at( 2 ).first ? fmt::format( "~{}", ins.at( 2 ).second ) : ins.at( 2 ).second;
+    _os << fmt::format( "assign {} = ( {} ? {} : {} );\n", lhs, p1, p2, p3 );
+  }
+
+  void on_xor3( const std::string& lhs, std::vector<std::pair<bool, std::string>> const& ins ) const
+  {
+    on_assign( lhs, ins, "^" );
+  }
+
   /*! \brief Callback method for writing an assignment statement with unknown operator.
    *
    * \param out Output signal
@@ -895,35 +964,50 @@ public:
                                                                              auto init = latches.find( inputs[0].first ) == latches.end() ? gtech_reader::latch_init_value::NONDETERMINISTIC : latches[inputs[0].first].second;
                                                                              reader.on_latch( output, inputs[0], init );
                                                                            }
-                                                                           else if ( type == "and" )
+                                                                           else if ( type == "and2" )
                                                                            {
                                                                              assert( inputs.size() == 2u );
                                                                              reader.on_and( output, inputs[0], inputs[1] );
                                                                            }
-                                                                           else if ( type == "nand" )
+                                                                           else if ( type == "nand2" )
                                                                            {
                                                                              assert( inputs.size() == 2u );
                                                                              reader.on_nand( output, inputs[0], inputs[1] );
                                                                            }
-                                                                           else if ( type == "or" )
+                                                                           else if ( type == "or2" )
                                                                            {
                                                                              assert( inputs.size() == 2u );
                                                                              reader.on_or( output, inputs[0], inputs[1] );
                                                                            }
-                                                                           else if ( type == "nor" )
+                                                                           else if ( type == "nor2" )
                                                                            {
                                                                              assert( inputs.size() == 2u );
                                                                              reader.on_nor( output, inputs[0], inputs[1] );
                                                                            }
-                                                                           else if ( type == "xor" )
+                                                                           else if ( type == "xor2" )
                                                                            {
                                                                              assert( inputs.size() == 2u );
                                                                              reader.on_xor( output, inputs[0], inputs[1] );
                                                                            }
-                                                                           else if ( type == "xnor" )
+                                                                           else if ( type == "xnor2" )
                                                                            {
                                                                              assert( inputs.size() == 2u );
                                                                              reader.on_xnor( output, inputs[0], inputs[1] );
+                                                                           }
+                                                                           else if ( type == "maj3" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_maj( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "mux" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_ite( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "xor3" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_xor3( output, inputs[0], inputs[1], inputs[2] );
                                                                            }
                                                                            else
                                                                            {
@@ -1230,74 +1314,110 @@ public:
           return false;
         }
       }
-      else if ( token == "and" )
+      else if ( token == "and2" )
       {
-        success = parse_and();
+        success = parse_and2();
         if ( !success )
         {
           if ( diag )
           {
-            diag->report( diag_id::ERR_GTECH_GATE_AND );
+            diag->report( diag_id::ERR_GTECH_GATE_AND2 );
           }
           return false;
         }
       }
-      else if ( token == "nand" )
+      else if ( token == "nand2" )
       {
-        success = parse_nand();
+        success = parse_nand2();
         if ( !success )
         {
           if ( diag )
           {
-            diag->report( diag_id::ERR_GTECH_GATE_NAND );
+            diag->report( diag_id::ERR_GTECH_GATE_NAND2 );
           }
           return false;
         }
       }
-      else if ( token == "or" )
+      else if ( token == "or2" )
       {
-        success = parse_or();
+        success = parse_or2();
         if ( !success )
         {
           if ( diag )
           {
-            diag->report( diag_id::ERR_GTECH_GATE_OR );
+            diag->report( diag_id::ERR_GTECH_GATE_OR2 );
           }
           return false;
         }
       }
-      else if ( token == "nor" )
+      else if ( token == "nor2" )
       {
-        success = parse_nor();
+        success = parse_nor2();
         if ( !success )
         {
           if ( diag )
           {
-            diag->report( diag_id::ERR_GTECH_GATE_NOR );
+            diag->report( diag_id::ERR_GTECH_GATE_NOR2 );
           }
           return false;
         }
       }
-      else if ( token == "xor" )
+      else if ( token == "xor2" )
       {
-        success = parse_xor();
+        success = parse_xor2();
         if ( !success )
         {
           if ( diag )
           {
-            diag->report( diag_id::ERR_GTECH_GATE_XOR );
+            diag->report( diag_id::ERR_GTECH_GATE_XOR2 );
           }
           return false;
         }
       }
-      else if ( token == "xnor" )
+      else if ( token == "xnor2" )
       {
-        success = parse_xnor();
+        success = parse_xnor2();
         if ( !success )
         {
           if ( diag )
           {
-            diag->report( diag_id::ERR_GTECH_GATE_XNOR );
+            diag->report( diag_id::ERR_GTECH_GATE_XNOR2 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "maj3" )
+      {
+        success = parse_maj3();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_MAJ3 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "mux" )
+      {
+        success = parse_mux();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_MUX );
+          }
+          return false;
+        }
+      }
+      else if ( token == "xor3" )
+      {
+        success = parse_xor3();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_XOR3 );
           }
           return false;
         }
@@ -1931,9 +2051,9 @@ public:
     return true;
   }
 
-  bool parse_and()
+  bool parse_and2()
   {
-    if ( token != "and" )
+    if ( token != "and2" )
       return false;
     std::string lhs;
     std::pair<std::string, bool> op1;
@@ -1945,7 +2065,7 @@ public:
     {
       if ( diag )
       {
-        diag->report( diag_id::ERR_GTECH_GATE_AND )
+        diag->report( diag_id::ERR_GTECH_GATE_AND2 )
             .add_argument( lhs );
       }
       return false;
@@ -1953,13 +2073,13 @@ public:
 
     std::vector<std::pair<std::string, bool>> args{ op1, op2 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first }, { lhs },
-                                      /* gate-function params */ std::make_tuple( args, lhs, "and" ) );
+                                      /* gate-function params */ std::make_tuple( args, lhs, "and2" ) );
     return true;
   }
 
-  bool parse_nand()
+  bool parse_nand2()
   {
-    if ( token != "nand" )
+    if ( token != "nand2" )
       return false;
     std::string lhs;
     std::pair<std::string, bool> op1;
@@ -1971,7 +2091,7 @@ public:
     {
       if ( diag )
       {
-        diag->report( diag_id::ERR_GTECH_GATE_NAND )
+        diag->report( diag_id::ERR_GTECH_GATE_NAND2 )
             .add_argument( lhs );
       }
       return false;
@@ -1979,13 +2099,13 @@ public:
 
     std::vector<std::pair<std::string, bool>> args{ op1, op2 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first }, { lhs },
-                                      /* gate-function params */ std::make_tuple( args, lhs, "nand" ) );
+                                      /* gate-function params */ std::make_tuple( args, lhs, "nand2" ) );
     return true;
   }
 
-  bool parse_or()
+  bool parse_or2()
   {
-    if ( token != "or" )
+    if ( token != "or2" )
       return false;
     std::string lhs;
     std::pair<std::string, bool> op1;
@@ -1997,7 +2117,7 @@ public:
     {
       if ( diag )
       {
-        diag->report( diag_id::ERR_GTECH_GATE_OR )
+        diag->report( diag_id::ERR_GTECH_GATE_OR2 )
             .add_argument( lhs );
       }
       return false;
@@ -2005,13 +2125,13 @@ public:
 
     std::vector<std::pair<std::string, bool>> args{ op1, op2 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first }, { lhs },
-                                      /* gate-function params */ std::make_tuple( args, lhs, "or" ) );
+                                      /* gate-function params */ std::make_tuple( args, lhs, "or2" ) );
     return true;
   }
 
-  bool parse_nor()
+  bool parse_nor2()
   {
-    if ( token != "nor" )
+    if ( token != "nor2" )
       return false;
     std::string lhs;
     std::pair<std::string, bool> op1;
@@ -2023,7 +2143,7 @@ public:
     {
       if ( diag )
       {
-        diag->report( diag_id::ERR_GTECH_GATE_NOR )
+        diag->report( diag_id::ERR_GTECH_GATE_NOR2 )
             .add_argument( lhs );
       }
       return false;
@@ -2031,13 +2151,13 @@ public:
 
     std::vector<std::pair<std::string, bool>> args{ op1, op2 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first }, { lhs },
-                                      /* gate-function params */ std::make_tuple( args, lhs, "nor" ) );
+                                      /* gate-function params */ std::make_tuple( args, lhs, "nor2" ) );
     return true;
   }
 
-  bool parse_xor()
+  bool parse_xor2()
   {
-    if ( token != "xor" )
+    if ( token != "xor2" )
       return false;
 
     std::string lhs;
@@ -2050,7 +2170,7 @@ public:
     {
       if ( diag )
       {
-        diag->report( diag_id::ERR_GTECH_GATE_XOR )
+        diag->report( diag_id::ERR_GTECH_GATE_XOR2 )
             .add_argument( lhs );
       }
       return false;
@@ -2058,13 +2178,13 @@ public:
 
     std::vector<std::pair<std::string, bool>> args{ op1, op2 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first }, { lhs },
-                                      /* gate-function params */ std::make_tuple( args, lhs, "xor" ) );
+                                      /* gate-function params */ std::make_tuple( args, lhs, "xor2" ) );
     return true;
   }
 
-  bool parse_xnor()
+  bool parse_xnor2()
   {
-    if ( token != "xnor" )
+    if ( token != "xnor2" )
       return false;
 
     std::string lhs;
@@ -2077,7 +2197,7 @@ public:
     {
       if ( diag )
       {
-        diag->report( diag_id::ERR_GTECH_GATE_XNOR )
+        diag->report( diag_id::ERR_GTECH_GATE_XNOR2 )
             .add_argument( lhs );
       }
       return false;
@@ -2085,7 +2205,91 @@ public:
 
     std::vector<std::pair<std::string, bool>> args{ op1, op2 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first }, { lhs },
-                                      /* gate-function params */ std::make_tuple( args, lhs, "xnor" ) );
+                                      /* gate-function params */ std::make_tuple( args, lhs, "xnor2" ) );
+    return true;
+  }
+
+  bool parse_maj3()
+  {
+    if ( token != "maj3" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_MAJ3 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "maj3" ) );
+    return true;
+  }
+
+  bool parse_mux()
+  {
+    if ( token != "mux" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_MUX )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "mux" ) );
+    return true;
+  }
+
+  bool parse_xor3()
+  {
+    if ( token != "xor3" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_XOR3 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "xor3" ) );
     return true;
   }
 
@@ -2462,6 +2666,114 @@ public:
     return true;
   }
 
+  bool parse_general_trinate_expression( std::string& lhs, std::pair<std::string, bool>& op1, std::pair<std::string, bool>& op2, std::pair<std::string, bool>& op3 )
+  {
+    // Parse the gate name
+    valid = get_token( token );
+    if ( !valid )
+      return false;
+
+    // Check whether this gate has been processed
+    if ( set_gates_been_processed.find( token ) != set_gates_been_processed.end() )
+      return true;
+
+    set_gates_been_processed.insert( token );
+
+    valid = get_token( token );
+    if ( !valid || token != "(" )
+      return false;
+
+    // Parse the line within parentheses
+    std::string line;
+    std::stack<std::string> paren_stk;
+    paren_stk.push( "(" );
+
+    while ( valid && !paren_stk.empty() && token != ";" )
+    {
+      valid = get_token( token );
+
+      if ( !valid )
+        return false;
+
+      if ( token == "(" )
+      {
+        paren_stk.push( "(" );
+      }
+      else if ( token == ")" )
+      {
+        paren_stk.pop();
+        if ( paren_stk.empty() )
+          break;
+      }
+
+      line += token + " ";
+    }
+
+    if ( token != ")" )
+      return false;
+
+    // Remove trailing spaces
+    line.erase( line.find_last_not_of( " \n\r\t" ) + 1 );
+
+    // Split line by commas and dots
+    std::istringstream iss( line );
+    std::vector<std::string> words;
+    std::string word;
+    while ( std::getline( iss, word, ',' ) )
+    {
+      std::string port = parse_port( word );
+      words.push_back( port );
+    }
+
+    // Ensure that there are exactly two elements
+    if ( words.size() != 4 )
+      return false;
+
+    // Parse the output (lhs) and input (op1, op2, op3)
+    lhs = words[0];
+    assert( set_all_wires.find( lhs ) != set_all_wires.end() );
+    if ( words[1][0] == '~' )
+    {
+      assert( set_all_wires.find( words[1].substr( 1 ) ) != set_all_wires.end() );
+      op1.first = words[1].substr( 1 );
+      op1.second = true;
+    }
+    else
+    {
+      assert( set_all_wires.find( words[1] ) != set_all_wires.end() );
+      op1.first = words[1];
+    }
+
+    if ( words[2][0] == '~' )
+    {
+      assert( set_all_wires.find( words[2].substr( 1 ) ) != set_all_wires.end() );
+      op2.first = words[2].substr( 1 );
+      op2.second = true;
+    }
+    else
+    {
+      assert( set_all_wires.find( words[2] ) != set_all_wires.end() );
+      op2.first = words[2];
+    }
+
+    if ( words[3][0] == '~' )
+    {
+      assert( set_all_wires.find( words[3].substr( 1 ) ) != set_all_wires.end() );
+      op3.first = words[2].substr( 1 );
+      op3.second = true;
+    }
+    else
+    {
+      assert( set_all_wires.find( words[3] ) != set_all_wires.end() );
+      op3.first = words[2];
+    }
+
+    valid = get_token( token );
+    if ( !valid || token != ";" )
+      return false;
+    return true;
+  }
+
   bool parse_assign()
   {
     if ( token != "assign" )
@@ -2665,17 +2977,17 @@ public:
       if ( op == "&" )
       {
         on_action.call_deferred<GATE_FN>( /* dependencies */ { arg0.first, arg1.first }, { lhs },
-                                          /* gate-function params */ std::make_tuple( args, lhs, "and" ) );
+                                          /* gate-function params */ std::make_tuple( args, lhs, "and2" ) );
       }
       else if ( op == "|" )
       {
         on_action.call_deferred<GATE_FN>( /* dependencies */ { arg0.first, arg1.first }, { lhs },
-                                          /* gate-function params */ std::make_tuple( args, lhs, "or" ) );
+                                          /* gate-function params */ std::make_tuple( args, lhs, "or2" ) );
       }
       else if ( op == "^" )
       {
         on_action.call_deferred<GATE_FN>( /* dependencies */ { arg0.first, arg1.first }, { lhs },
-                                          /* gate-function params */ std::make_tuple( args, lhs, "xor" ) );
+                                          /* gate-function params */ std::make_tuple( args, lhs, "xor2" ) );
       }
       else
       {
@@ -2693,17 +3005,17 @@ public:
       if ( op == "&" )
       {
         on_action.call_deferred<GATE_FN>( /* dependencies */ { arg0.first, arg1.first }, { lhs },
-                                          /* gate-function params */ std::make_tuple( args, lhs, "nand" ) );
+                                          /* gate-function params */ std::make_tuple( args, lhs, "nand2" ) );
       }
       else if ( op == "|" )
       {
         on_action.call_deferred<GATE_FN>( /* dependencies */ { arg0.first, arg1.first }, { lhs },
-                                          /* gate-function params */ std::make_tuple( args, lhs, "nor" ) );
+                                          /* gate-function params */ std::make_tuple( args, lhs, "nor2" ) );
       }
       else if ( op == "^" )
       {
         on_action.call_deferred<GATE_FN>( /* dependencies */ { arg0.first, arg1.first }, { lhs },
-                                          /* gate-function params */ std::make_tuple( args, lhs, "xnor" ) );
+                                          /* gate-function params */ std::make_tuple( args, lhs, "xnor2" ) );
       }
       else
       {
