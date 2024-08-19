@@ -145,6 +145,20 @@ struct mixed_fanin_node
   }
 };
 
+template<int Fanin, int Size = 0, int PointerFieldSize = 0>
+struct max_fanin_node
+{
+  using pointer_type = node_pointer<PointerFieldSize>;
+
+  std::vector<pointer_type> children;
+  std::array<cauint64_t, Size> data;
+
+  bool operator==( max_fanin_node<Fanin, Size, PointerFieldSize> const& other ) const
+  {
+    return children == other.children;
+  }
+};
+
 template<int PointerFieldSize = 0>
 struct block_fanin_node
 {

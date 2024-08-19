@@ -40,14 +40,14 @@ struct gtg_storage_data
 
   `data[0].h1`: Fan-out size (we use MSB to indicate whether a node is dead)
   `data[0].h2`: Application-specific value
-  `data[1].h1`: Visited flag
-  `data[1].h2`: Function literal in truth table cache
+  `data[1].h1`: Function literal in truth table cache
+  `data[1].h2`: Visited flag
 */
-struct gtg_storage_node : mixed_fanin_node<2, 1>
+struct gtg_storage_node : max_fanin_node<3, 2, 1>
 {
   bool operator==( gtg_storage_node const& other ) const
   {
-    return data[1].h2 == other.data[1].h2 && children == other.children; // same type node and same children
+    return data[1].h1 == other.data[1].h1 && children == other.children; // same type node and same children
   }
 };
 
@@ -232,12 +232,13 @@ private:
   {
     assert( children.size() <= 3u );
 
-    storage::element_type::node_type node;
-    std::copy( children.begin(), children.end(), std::back_inserter( node.children ) );
-    node.data[1].h2 = literal;
-
     const auto index = _storage->nodes.size();
-    _storage->nodes.emplace_back( node );
+    auto& node = _storage->nodes.emplace_back();
+    node.data[1].h1 = literal;
+    for ( auto child : children )
+    {
+      node.children.push_back( child );
+    }
 
     // increase ref-count to children
     for ( auto c : children )
@@ -265,8 +266,7 @@ public:
     (void)name;
     const auto index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
-    node.children[0].data = node.children[1].data = _storage->inputs.size();
-    node.data[1].h2 = 1; // mark as PI
+    node.data[1].h1 = 1; // mark the literal as PI
     _storage->inputs.emplace_back( index );
     return { index, 0 };
   }
@@ -293,12 +293,12 @@ public:
 
   bool is_ci( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 1;
+    return _storage->nodes[n].data[1].h1 == 1;
   }
 
   bool is_pi( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 1 && !is_constant( n );
+    return _storage->nodes[n].data[1].h1 == 1 && !is_constant( n );
   }
 
   bool constant_value( node const& n ) const
@@ -410,7 +410,7 @@ public:
   signal clone_node( gtg_network const& other, node const& source, std::vector<signal> const& children )
   {
     assert( !children.empty() );
-    const auto tt = other._storage->data.cache[other._storage->nodes[source].data[1].h2];
+    const auto tt = other._storage->data.cache[other._storage->nodes[source].data[1].h1];
     return create_node( children, tt );
   }
 #pragma endregion
@@ -476,22 +476,22 @@ public:
 
   bool is_and( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 4;
+    return _storage->nodes[n].data[1].h1 == 4;
   }
 
   bool is_nand( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 5;
+    return _storage->nodes[n].data[1].h1 == 5;
   }
 
   bool is_or( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 6;
+    return _storage->nodes[n].data[1].h1 == 6;
   }
 
   bool is_nor( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 7;
+    return _storage->nodes[n].data[1].h1 == 7;
   }
 
   bool is_lt( node const& n ) const
@@ -506,27 +506,27 @@ public:
 
   bool is_xor( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 12;
+    return _storage->nodes[n].data[1].h1 == 12;
   }
 
   bool is_xnor( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 13;
+    return _storage->nodes[n].data[1].h1 == 13;
   }
 
   bool is_maj( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 14;
+    return _storage->nodes[n].data[1].h1 == 14;
   }
 
   bool is_ite( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 16;
+    return _storage->nodes[n].data[1].h1 == 16;
   }
 
   bool is_xor3( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h2 == 18;
+    return _storage->nodes[n].data[1].h1 == 18;
   }
 
   bool is_nary_and( node const& n ) const
@@ -558,7 +558,7 @@ public:
   kitty::dynamic_truth_table node_function( const node& n ) const
   {
     assert( is_function( n ) );
-    return _storage->data.cache[_storage->nodes[n].data[1].h2];
+    return _storage->data.cache[_storage->nodes[n].data[1].h1];
   }
 #pragma endregion
 
@@ -703,34 +703,41 @@ public:
   {
     if ( n == 0 || is_ci( n ) )
       return;
-
     static_assert( detail::is_callable_without_index_v<Fn, signal, bool> ||
                    detail::is_callable_with_index_v<Fn, signal, bool> ||
                    detail::is_callable_without_index_v<Fn, signal, void> ||
                    detail::is_callable_with_index_v<Fn, signal, void> );
-
+    int i = 0;
     /* we don't use foreach_element here to have better performance */
     if constexpr ( detail::is_callable_without_index_v<Fn, signal, bool> )
     {
-      if ( !fn( signal{ _storage->nodes[n].children[0] } ) )
-        return;
-      fn( signal{ _storage->nodes[n].children[1] } );
+      for ( i = 0; i < _storage->nodes[n].children.size(); ++i )
+      {
+        if ( !fn( signal{ _storage->nodes[n].children[i] } ) )
+          return;
+      }
     }
     else if constexpr ( detail::is_callable_with_index_v<Fn, signal, bool> )
     {
-      if ( !fn( signal{ _storage->nodes[n].children[0] }, 0 ) )
-        return;
-      fn( signal{ _storage->nodes[n].children[1] }, 1 );
+      for ( i = 0; i < _storage->nodes[n].children.size(); ++i )
+      {
+        if ( !fn( signal{ _storage->nodes[n].children[i] }, i ) )
+          return;
+      }
     }
     else if constexpr ( detail::is_callable_without_index_v<Fn, signal, void> )
     {
-      fn( signal{ _storage->nodes[n].children[0] } );
-      fn( signal{ _storage->nodes[n].children[1] } );
+      for ( i = 0; i < _storage->nodes[n].children.size(); ++i )
+      {
+        fn( signal{ _storage->nodes[n].children[i] } );
+      }
     }
     else if constexpr ( detail::is_callable_with_index_v<Fn, signal, void> )
     {
-      fn( signal{ _storage->nodes[n].children[0] }, 0 );
-      fn( signal{ _storage->nodes[n].children[1] }, 1 );
+      for ( i = 0; i < _storage->nodes[n].children.size(); ++i )
+      {
+        fn( signal{ _storage->nodes[n].children[i] }, i );
+      }
     }
   }
 #pragma endregion
@@ -749,7 +756,7 @@ public:
       index <<= 1;
       index ^= *begin++ ? 1 : 0;
     }
-    return kitty::get_bit( _storage->data.cache[_storage->nodes[n].data[1].h2], index );
+    return kitty::get_bit( _storage->data.cache[_storage->nodes[n].data[1].h1], index );
   }
 
   template<typename Iterator>
@@ -765,7 +772,7 @@ public:
 
     /* resulting truth table has the same size as any of the children */
     auto result = tts.front().construct();
-    const auto gate_tt = _storage->data.cache[_storage->nodes[n].data[1].h2];
+    const auto gate_tt = _storage->data.cache[_storage->nodes[n].data[1].h1];
 
     for ( uint32_t i = 0u; i < static_cast<uint32_t>( result.num_bits() ); ++i )
     {
@@ -813,17 +820,17 @@ public:
 #pragma region Visited flags
   void clear_visited() const
   {
-    std::for_each( _storage->nodes.begin(), _storage->nodes.end(), []( auto& n ) { n.data[1].h1 = 0; } );
+    std::for_each( _storage->nodes.begin(), _storage->nodes.end(), []( auto& n ) { n.data[1].h2 = 0; } );
   }
 
   auto visited( node const& n ) const
   {
-    return _storage->nodes[n].data[1].h1;
+    return _storage->nodes[n].data[1].h2;
   }
 
   void set_visited( node const& n, uint32_t v ) const
   {
-    _storage->nodes[n].data[1].h1 = v;
+    _storage->nodes[n].data[1].h2 = v;
   }
 
   uint32_t trav_id() const
