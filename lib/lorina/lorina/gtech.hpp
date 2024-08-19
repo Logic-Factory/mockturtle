@@ -1117,8 +1117,10 @@ public:
       }
       else if ( token == "/*" )
       {
+        reader.on_comment( token );
         while ( valid && token != "*/" )
         {
+          reader.on_comment( token );
           valid = get_token( token ); // Skip block comments
         }
         valid = get_token( token ); // Skip the closing "*/"
@@ -1126,6 +1128,12 @@ public:
       }
       break;
     }
+
+    while ( valid && token != "module" )
+    {
+      valid = get_token( token );
+    }
+
     return valid;
   }
 
