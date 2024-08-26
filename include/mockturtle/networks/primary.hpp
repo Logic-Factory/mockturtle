@@ -227,9 +227,6 @@ private:
   {
     assert( children.size() == 2u );
 
-    // fanin is following the index order
-    std::sort( children.begin(), children.end(), [signal const & a, signal const & b]() { return a.index < b.index; } );
-
     storage::element_type::node_type tmp_node;
     tmp_node.children = { children[0], children[1] };
     tmp_node.data[1].h1 = literal;
@@ -320,31 +317,43 @@ public:
 
   signal create_and( signal a, signal b )
   {
+    if ( a.index < b.index )
+      std::swap( a, b );
     return _create_node( { a, b }, 4 );
   }
 
   signal create_nand( signal a, signal b )
   {
+    if ( a.index < b.index )
+      std::swap( a, b );
     return _create_node( { a, b }, 5 );
   }
 
   signal create_or( signal a, signal b )
   {
+    if ( a.index < b.index )
+      std::swap( a, b );
     return _create_node( { a, b }, 6 );
   }
 
   signal create_nor( signal a, signal b )
   {
+    if ( a.index < b.index )
+      std::swap( a, b );
     return _create_node( { a, b }, 7 );
   }
 
   signal create_xor( signal a, signal b )
   {
+    if ( a.index < b.index )
+      std::swap( a, b );
     return _create_node( { a, b }, 12 );
   }
 
   signal create_xnor( signal a, signal b )
   {
+    if ( a.index < b.index )
+      std::swap( a, b );
     return _create_node( { a, b }, 13 );
   }
 #pragma endregion
@@ -412,13 +421,9 @@ public:
   signal clone_node( primary_network const& other, node const& source, std::vector<signal> const& children )
   {
     assert( !children.empty() );
-    if ( children.size() == 0u )
-    {
-      assert( function.num_vars() == 0u );
-      return get_constant( !kitty::is_const0( function ) );
-    }
+
     const auto tt = other._storage->data.cache[other._storage->nodes[source].data[1].h1];
-    return _create_node( children, _storage->data.cache.insert( function ) );
+    return _create_node( children, _storage->data.cache.insert( tt ) );
   }
 #pragma endregion
 
