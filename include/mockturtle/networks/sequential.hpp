@@ -40,6 +40,7 @@
 #include "gtg.hpp"
 #include "klut.hpp"
 #include "mig.hpp"
+#include "primary.hpp"
 #include "xag.hpp"
 #include "xmg.hpp"
 
@@ -68,6 +69,10 @@ struct is_aig_like<mig_network> : std::true_type
 };
 template<>
 struct is_aig_like<xmg_network> : std::true_type
+{
+};
+template<>
+struct is_aig_like<primary_network> : std::true_type
 {
 };
 template<>
@@ -364,7 +369,7 @@ public:
       : _sequential_storage( std::make_shared<sequential_information>() )
   {
     static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, xag_network> ||
-                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> ||
+                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> || std::is_same_v<base_type, primary_network> ||
                        std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
                    "Sequential interfaces extended for unknown network type. Please check the compatibility of implementations." );
   }
@@ -373,7 +378,7 @@ public:
       : Ntk( base_storage ), _sequential_storage( std::make_shared<sequential_information>() )
   {
     static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, xag_network> ||
-                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> ||
+                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> || std::is_same_v<base_type, primary_network> ||
                        std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
                    "Sequential interfaces extended for unknown network type. Please check the compatibility of implementations." );
   }
