@@ -228,18 +228,34 @@ public:
     {
       if ( ntk.is_maj( n ) )
       {
-        std::string label{ "MAJ" };
-        ntk.foreach_fanin( n, [&]( auto const& f ) {
-          if ( ntk.is_constant( ntk.get_node( f ) ) )
-          {
-            const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
-            label = v ? std::to_string( ntk.node_to_index( n ) )+"-or" : std::to_string( ntk.node_to_index( n ) )+"-and";
-            return false;
-          }
-          return true; } );
-        return label;
+        return std::to_string( ntk.node_to_index( n ) ) + "-maj3";
       }
     }
+
+    if constexpr ( has_is_ite_v<Ntk> )
+    {
+      if ( ntk.is_ite( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-mux";
+      }
+    }
+
+    // if constexpr ( has_is_maj_v<Ntk> )
+    // {
+    //   if ( ntk.is_maj( n ) )
+    //   {
+    //     std::string label{ "MAJ" };
+    //     ntk.foreach_fanin( n, [&]( auto const& f ) {
+    //       if ( ntk.is_constant( ntk.get_node( f ) ) )
+    //       {
+    //         const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
+    //         label = v ? std::to_string( ntk.node_to_index( n ) )+"-or" : std::to_string( ntk.node_to_index( n ) )+"-and";
+    //         return false;
+    //       }
+    //       return true; } );
+    //     return label;
+    //   }
+    // }
 
     if constexpr ( has_is_xor3_v<Ntk> )
     {
@@ -355,19 +371,35 @@ public:
     {
       if ( ntk.is_maj( n ) )
       {
-        std::string color{ "lightsalmon" };
-        ntk.foreach_fanin( n, [&]( auto const& f ) {
-          if ( ntk.is_constant( ntk.get_node( f ) ) )
-          {
-            const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
-            color = v ? "palegreen2" : "lightcoral";
-            return false;
-          }
-          return true;
-        } );
-        return color;
+        return "lightskyblue";
       }
     }
+
+    if constexpr ( has_is_ite_v<Ntk> )
+    {
+      if ( ntk.is_ite( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    // if constexpr ( has_is_maj_v<Ntk> )
+    // {
+    //   if ( ntk.is_maj( n ) )
+    //   {
+    //     std::string color{ "lightsalmon" };
+    //     ntk.foreach_fanin( n, [&]( auto const& f ) {
+    //       if ( ntk.is_constant( ntk.get_node( f ) ) )
+    //       {
+    //         const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
+    //         color = v ? "palegreen2" : "lightcoral";
+    //         return false;
+    //       }
+    //       return true;
+    //     } );
+    //     return color;
+    //   }
+    // }
 
     if constexpr ( has_is_xor3_v<Ntk> )
     {
@@ -455,20 +487,22 @@ void write_dot( Ntk const& ntk, std::ostream& os, Drawer const& drawer = {} )
   std::vector<std::vector<uint32_t>> level_to_node_indexes;
 
   ntk.foreach_node( [&]( auto const& n ) {
-    nodes << fmt::format( "{} [label=\"{}\",shape={},style=filled,fillcolor={}]\n",
-                          ntk.node_to_index( n ),
-                          drawer.node_label( ntk, n ),
-                          drawer.node_shape( ntk, n ),
-                          drawer.node_fillcolor( ntk, n ) );
+    std::string node = fmt::format( "{} [label=\"{}\",shape={},style=filled,fillcolor={}]\n",
+                                    ntk.node_to_index( n ),
+                                    drawer.node_label( ntk, n ),
+                                    drawer.node_shape( ntk, n ),
+                                    drawer.node_fillcolor( ntk, n ) );
+    nodes << node;
     if ( !ntk.is_constant( n ) && !ntk.is_ci( n ) )
     {
       ntk.foreach_fanin( n, [&]( auto const& f ) {
-        if ( !drawer.draw_signal( ntk, n, f ) )
-          return true;
-        edges << fmt::format( "{} -> {} [style={}]\n",
-                              ntk.node_to_index( ntk.get_node( f ) ),
-                              ntk.node_to_index( n ),
-                              drawer.signal_style( ntk, f ) );
+        // if ( !drawer.draw_signal( ntk, n, f ) )
+        //   return true;
+        std::string edge = fmt::format( "{} -> {} [style={}]\n",
+                                        ntk.node_to_index( ntk.get_node( f ) ),
+                                        ntk.node_to_index( n ),
+                                        drawer.signal_style( ntk, f ) );
+        edges << edge;
         return true;
       } );
     }

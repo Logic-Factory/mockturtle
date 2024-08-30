@@ -1068,7 +1068,8 @@ public:
 
   bool is_and( node const& n ) const
   {
-    return n > 0 && !is_ci( n );
+    (void)n;
+    return false;
   }
 
   bool is_nand( node const& n ) const
