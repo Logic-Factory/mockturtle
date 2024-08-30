@@ -159,12 +159,16 @@ public:
   primary_network()
       : _storage( std::make_shared<primary_storage>() ),
         _events( std::make_shared<decltype( _events )::element_type>() )
-  {}
+  {
+    _init();
+  }
 
   primary_network( std::shared_ptr<primary_storage> storage )
       : _storage( storage ),
         _events( std::make_shared<decltype( _events )::element_type>() )
-  {}
+  {
+    _init();
+  }
 
   primary_network clone() const
   {
@@ -181,6 +185,7 @@ private:
    * constant 1 ->         1           1
    *     buf    ->        10           2
    *     not    ->        01           3
+   *---------------------------------------
    *     and    ->      1000           4
    *     nand   ->      0111           5
    *     or     ->      1110           6
@@ -188,34 +193,58 @@ private:
    *     xor    ->      0110          12
    *     xnor   ->      1001          13
    */
-  void init()
+  void _init()
   {
     // reserve truth tables for nodes
-    kitty::dynamic_truth_table tt_zero( 0 ); // func-id 0
-    _storage->data.cache.insert( tt_zero );
+    kitty::dynamic_truth_table tt_zero( 0 );
+    _storage->data.cache.insert( tt_zero ); // func-id: 0
 
-    static uint64_t _not = 0x1; // func-id 3
-    kitty::dynamic_truth_table tt_not( 1 );
-    kitty::create_from_words( tt_not, &_not, &_not + 1 );
-    _storage->data.cache.insert( tt_not );
+    _storage->nodes[0].data[1].h1 = 0; // constant zero is alread insert to the storate->nodes
 
-    static uint64_t _and = 0x8; // func-id 4
-    kitty::dynamic_truth_table tt_and( 2 );
+    static uint64_t _buf = 0x2;
+    kitty::dynamic_truth_table tt_buf( 1 ); // func-id: 2
+    kitty::create_from_words( tt_buf, &_buf, &_buf + 1 );
+    _storage->data.cache.insert( tt_buf );
+
+    static uint64_t _and = 0x8;
+    kitty::dynamic_truth_table tt_and( 2 ); // func-id: 4
     kitty::create_from_words( tt_and, &_and, &_and + 1 );
     _storage->data.cache.insert( tt_and );
 
-    static uint64_t _or = 0xe; // func-id 6
-    kitty::dynamic_truth_table tt_or( 2 );
+    static uint64_t _or = 0xe;
+    kitty::dynamic_truth_table tt_or( 2 ); // func-id: 6
     kitty::create_from_words( tt_or, &_or, &_or + 1 );
     _storage->data.cache.insert( tt_or );
 
-    static uint64_t _xor = 0x6; // func-id 12
-    kitty::dynamic_truth_table tt_xor( 2 );
+    static uint64_t _lt = 0x4;
+    kitty::dynamic_truth_table tt_lt( 2 ); // func-id: 8
+    kitty::create_from_words( tt_lt, &_lt, &_lt + 1 );
+    _storage->data.cache.insert( tt_lt );
+
+    static uint64_t _le = 0xd;
+    kitty::dynamic_truth_table tt_le( 2 ); // func-id: 11
+    kitty::create_from_words( tt_le, &_le, &_le + 1 );
+    _storage->data.cache.insert( tt_le );
+
+    static uint64_t _xor = 0x6;
+    kitty::dynamic_truth_table tt_xor( 2 ); // func-id: 12
     kitty::create_from_words( tt_xor, &_xor, &_xor + 1 );
     _storage->data.cache.insert( tt_xor );
 
-    // constant 0
-    _storage->nodes[0].data[1].h1 = 0;
+    static uint64_t _maj = 0xe8;
+    kitty::dynamic_truth_table tt_maj( 3 ); // func-id: 14
+    kitty::create_from_words( tt_maj, &_maj, &_maj + 1 );
+    _storage->data.cache.insert( tt_maj );
+
+    static uint64_t _ite = 0xd8;
+    kitty::dynamic_truth_table tt_ite( 3 ); // func-id: 16
+    kitty::create_from_words( tt_ite, &_ite, &_ite + 1 );
+    _storage->data.cache.insert( tt_ite );
+
+    static uint64_t _xor3 = 0x96;
+    kitty::dynamic_truth_table tt_xor3( 3 ); // func-id: 18
+    kitty::create_from_words( tt_xor3, &_xor3, &_xor3 + 1 );
+    _storage->data.cache.insert( tt_xor3 );
   }
 
   /**
@@ -653,15 +682,8 @@ public:
 #pragma endregion
 
 #pragma region Functional properties
-
-  bool is_function( node const& n ) const
-  {
-    return n > 1 && !is_pi( n );
-  }
-
   kitty::dynamic_truth_table node_function( const node& n ) const
   {
-    assert( is_function( n ) );
     return _storage->data.cache[_storage->nodes[n].data[1].h1];
   }
 #pragma endregion
