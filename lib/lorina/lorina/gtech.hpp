@@ -300,6 +300,82 @@ public:
     (void)op3;
   }
 
+  virtual void on_nand3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
+  virtual void on_nor3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
+  virtual void on_mux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
+  virtual void on_nmux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
+  virtual void on_aoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
+  virtual void on_oai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+  virtual void on_axi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+  virtual void on_xai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+  virtual void on_oxi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+  virtual void on_xoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    (void)lhs;
+    (void)op1;
+    (void)op2;
+    (void)op3;
+  }
+
   /*! \brief Callback method for parsed comments `// comment string`.
    *
    * \param comment Comment string
@@ -545,6 +621,86 @@ public:
     const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
     const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
     _os << fmt::format( "assign {} = {} ^ {} ^ {} ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_nand3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~({} & {} & {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_nor3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~({} | {} | {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_mux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ( {} ? {} : {} );\n", lhs, p1, p2, p3 );
+  }
+
+  void on_nmux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ( {} ? {} : {} );\n", lhs, p1, p3, p2 );
+  }
+
+  void on_aoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} & {} ) | {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_oai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} | {} ) & {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_axi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} & {} ) ^ {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_xai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} ^ {} ) & {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_oxi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} | {} ) ^ {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_xoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} ^ {} ) | {}) ;\n", lhs, p1, p2, p3 );
   }
 
   void on_endmodule() const override
@@ -876,6 +1032,86 @@ public:
     on_assign( lhs, ins, "^" );
   }
 
+  void on_nand3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~({} & {} & {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_nor3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~({} | {} | {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_mux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ( {} ? {} : {} );\n", lhs, p1, p2, p3 );
+  }
+
+  void on_nmux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ( {} ? {} : {} );\n", lhs, p1, p3, p2 );
+  }
+
+  void on_aoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} & {} ) | {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_oai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} | {} ) & {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_axi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} & {} ) ^ {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_xai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} ^ {} ) & {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_oxi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} | {} ) ^ {}) ;\n", lhs, p1, p2, p3 );
+  }
+
+  void on_xoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const
+  {
+    const std::string p1 = op1.second ? fmt::format( "~{}", op1.first ) : op1.first;
+    const std::string p2 = op2.second ? fmt::format( "~{}", op2.first ) : op2.first;
+    const std::string p3 = op3.second ? fmt::format( "~{}", op3.first ) : op3.first;
+    _os << fmt::format( "assign {} = ~( ({} ^ {} ) | {}) ;\n", lhs, p1, p2, p3 );
+  }
+
   /*! \brief Callback method for writing an assignment statement with unknown operator.
    *
    * \param out Output signal
@@ -999,15 +1235,60 @@ public:
                                                                              assert( inputs.size() == 3u );
                                                                              reader.on_maj( output, inputs[0], inputs[1], inputs[2] );
                                                                            }
-                                                                           else if ( type == "mux" )
-                                                                           {
-                                                                             assert( inputs.size() == 3u );
-                                                                             reader.on_ite( output, inputs[0], inputs[1], inputs[2] );
-                                                                           }
                                                                            else if ( type == "xor3" )
                                                                            {
                                                                              assert( inputs.size() == 3u );
                                                                              reader.on_xor3( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "nand3" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_nand3( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "nor3" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_nor3( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "mux21" || type == "mux" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_mux21( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "nmux21" || type == "nmux" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_nmux21( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "aoi21" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_aoi21( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "oai21" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_oai21( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "axi21" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_axi21( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "xai21" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_xai21( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "oxi21" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_oxi21( output, inputs[0], inputs[1], inputs[2] );
+                                                                           }
+                                                                           else if ( type == "xoi21" )
+                                                                           {
+                                                                             assert( inputs.size() == 3u );
+                                                                             reader.on_xoi21( output, inputs[0], inputs[1], inputs[2] );
                                                                            }
                                                                            else
                                                                            {
@@ -1406,18 +1687,6 @@ public:
           return false;
         }
       }
-      else if ( token == "mux" )
-      {
-        success = parse_mux();
-        if ( !success )
-        {
-          if ( diag )
-          {
-            diag->report( diag_id::ERR_GTECH_GATE_MUX );
-          }
-          return false;
-        }
-      }
       else if ( token == "xor3" )
       {
         success = parse_xor3();
@@ -1426,6 +1695,126 @@ public:
           if ( diag )
           {
             diag->report( diag_id::ERR_GTECH_GATE_XOR3 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "nand3" )
+      {
+        success = parse_nand3();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_NAND3 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "nor3" )
+      {
+        success = parse_nor3();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_NOR3 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "mux21" || token == "mux" )
+      {
+        success = parse_mux21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_MUX21 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "nmux21" || token == "nmux" )
+      {
+        success = parse_nmux21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_NMUX21 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "aoi21" )
+      {
+        success = parse_aoi21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_AOI21 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "oai21" )
+      {
+        success = parse_oai21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_OAI21 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "axi21" )
+      {
+        success = parse_axi21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_AXI21 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "xai21" )
+      {
+        success = parse_xai21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_XAI21 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "oxi21" )
+      {
+        success = parse_oxi21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_OXI21 );
+          }
+          return false;
+        }
+      }
+      else if ( token == "xoi21" )
+      {
+        success = parse_xoi21();
+        if ( !success )
+        {
+          if ( diag )
+          {
+            diag->report( diag_id::ERR_GTECH_GATE_XOI21 );
           }
           return false;
         }
@@ -2261,7 +2650,7 @@ public:
     {
       if ( diag )
       {
-        diag->report( diag_id::ERR_GTECH_GATE_MUX )
+        diag->report( diag_id::ERR_GTECH_GATE_MUX21 )
             .add_argument( lhs );
       }
       return false;
@@ -2298,6 +2687,286 @@ public:
     std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
     on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
                                       /* gate-function params */ std::make_tuple( args, lhs, "xor3" ) );
+    return true;
+  }
+
+  bool parse_nand3()
+  {
+    if ( token != "nand3" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_NAND3 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "nand3" ) );
+    return true;
+  }
+
+  bool parse_nor3()
+  {
+    if ( token != "nor3" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_NOR3 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "nor3" ) );
+    return true;
+  }
+
+  bool parse_mux21()
+  {
+    if ( token != "mux21" && token != "mux" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_MUX21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "mux21" ) );
+    return true;
+  }
+
+  bool parse_nmux21()
+  {
+    if ( token != "nmux21" && token != "nmux" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_MUX21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "nmux21" ) );
+    return true;
+  }
+
+  bool parse_aoi21()
+  {
+    if ( token != "aoi21" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_AOI21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "aoi21" ) );
+    return true;
+  }
+
+  bool parse_oai21()
+  {
+    if ( token != "oai21" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_OAI21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "oai21" ) );
+    return true;
+  }
+
+  bool parse_axi21()
+  {
+    if ( token != "axi21" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_AXI21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "axi21" ) );
+    return true;
+  }
+
+  bool parse_xai21()
+  {
+    if ( token != "xai21" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_XAI21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "xai21" ) );
+    return true;
+  }
+
+  bool parse_oxi21()
+  {
+    if ( token != "oxi21" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_OXI21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "oxi21" ) );
+    return true;
+  }
+
+  bool parse_xoi21()
+  {
+    if ( token != "xoi21" )
+      return false;
+
+    std::string lhs;
+    std::pair<std::string, bool> op1;
+    std::pair<std::string, bool> op2;
+    std::pair<std::string, bool> op3;
+
+    bool success = parse_general_trinate_expression( lhs, op1, op2, op3 );
+
+    if ( !success )
+    {
+      if ( diag )
+      {
+        diag->report( diag_id::ERR_GTECH_GATE_XOI21 )
+            .add_argument( lhs );
+      }
+      return false;
+    }
+
+    std::vector<std::pair<std::string, bool>> args{ op1, op2, op3 };
+    on_action.call_deferred<GATE_FN>( /* dependencies */ { op1.first, op2.first, op3.first }, { lhs },
+                                      /* gate-function params */ std::make_tuple( args, lhs, "xoi21" ) );
     return true;
   }
 
@@ -2767,13 +3436,13 @@ public:
     if ( words[3][0] == '~' )
     {
       assert( set_all_wires.find( words[3].substr( 1 ) ) != set_all_wires.end() );
-      op3.first = words[2].substr( 1 );
+      op3.first = words[3].substr( 1 );
       op3.second = true;
     }
     else
     {
       assert( set_all_wires.find( words[3] ) != set_all_wires.end() );
-      op3.first = words[2];
+      op3.first = words[3];
     }
 
     valid = get_token( token );
