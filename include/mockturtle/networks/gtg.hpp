@@ -59,7 +59,7 @@ using gtg_storage = storage_no_hash<gtg_storage_node,
  * @note this network is composed by the following types of logic gates:
  *      unate  :  buffer, inverter,
  *      binate :  and2, nand2, or2, nor2, xor2, xnor2,
- *      trinate:  maj3, mux, xor3
+ *      trinate:  mux, nmux, aoi3, oai3, axi3, xai3, oxi3, xoi3
  */
 class gtg_network
 {
@@ -182,9 +182,15 @@ private:
    *     nor    ->      0001           7
    *     xor    ->      0110          12
    *     xnor   ->      1001          13
-   *     maj    -> 1110,1000          14
    *     ite    -> 1101,1000          16
-   *     xor3   -> 1001,0110          18
+   *     nand3  -> 0111,1111          21
+   *     nor3   -> 0000,0001          23
+   *     aoi21  -> 0001,0101          25
+   *     oai21  -> 0101,0111          27
+   *     axi21  -> 1001,0101          29
+   *     xai21  -> 1101,0111          31
+   *     oxi21  -> 1010,1001          33
+   *     xoi21  -> 0100,0001          35
    */
   void _init()
   {
@@ -238,6 +244,46 @@ private:
     kitty::dynamic_truth_table tt_xor3( 3 ); // func-id: 18
     kitty::create_from_words( tt_xor3, &_xor3, &_xor3 + 1 );
     _storage->data.cache.insert( tt_xor3 );
+
+    static uint64_t _nand3 = 0x7f;            // !(a and b and c) 0111,1111
+    kitty::dynamic_truth_table tt_nand3( 3 ); // func-id: 21
+    kitty::create_from_words( tt_nand3, &_nand3, &_nand3 + 1 );
+    _storage->data.cache.insert( tt_nand3 );
+
+    static uint64_t _nor3 = 0x01;            // !(a or b or c) 0000,0001
+    kitty::dynamic_truth_table tt_nor3( 3 ); // func-id: 23
+    kitty::create_from_words( tt_nor3, &_nor3, &_nor3 + 1 );
+    _storage->data.cache.insert( tt_nor3 );
+
+    static uint64_t _aoi21 = 0x15;            // !((a and b) or c) 0001,0101
+    kitty::dynamic_truth_table tt_aoi21( 3 ); // func-id: 25
+    kitty::create_from_words( tt_aoi21, &_aoi21, &_aoi21 + 1 );
+    _storage->data.cache.insert( tt_aoi21 );
+
+    static uint64_t _oai21 = 0x57;            // !((a or b) and c) 0101,0111
+    kitty::dynamic_truth_table tt_oai21( 3 ); // func-id: 27
+    kitty::create_from_words( tt_oai21, &_oai21, &_oai21 + 1 );
+    _storage->data.cache.insert( tt_oai21 );
+
+    static uint64_t _axi21 = 0x95;            // !((a and b) xor c) 1001,0101
+    kitty::dynamic_truth_table tt_axi21( 3 ); // func-id: 29
+    kitty::create_from_words( tt_axi21, &_axi21, &_axi21 + 1 );
+    _storage->data.cache.insert( tt_axi21 );
+
+    static uint64_t _xai21 = 0xd7;            // !((a xor b) and c) 1101,0111
+    kitty::dynamic_truth_table tt_xai21( 3 ); // func-id: 31
+    kitty::create_from_words( tt_xai21, &_xai21, &_xai21 + 1 );
+    _storage->data.cache.insert( tt_xai21 );
+
+    static uint64_t _oxi21 = 0xa9;            // !((a or b) xor c) 1010,1001
+    kitty::dynamic_truth_table tt_oxi21( 3 ); // func-id: 33
+    kitty::create_from_words( tt_oxi21, &_oxi21, &_oxi21 + 1 );
+    _storage->data.cache.insert( tt_oxi21 );
+
+    static uint64_t _xoi21 = 0x41;            // !((a xor b) or c) 0100,0001
+    kitty::dynamic_truth_table tt_xoi21( 3 ); // func-id: 35
+    kitty::create_from_words( tt_xoi21, &_xoi21, &_xoi21 + 1 );
+    _storage->data.cache.insert( tt_xoi21 );
   }
 
   /**
@@ -404,6 +450,57 @@ public:
   {
     return _create_node( { a, b, c }, 18 );
   }
+
+  signal create_mux21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 16 ); // same as ite
+  }
+
+  signal create_nmux21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 17 );
+  }
+
+  signal create_nand3( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 21 );
+  }
+
+  signal create_nor3( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 23 );
+  }
+
+  signal create_aoi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 25 );
+  }
+
+  signal create_oai21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 27 );
+  }
+
+  signal create_axi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 29 );
+  }
+
+  signal create_xai21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 31 );
+  }
+
+  signal create_oxi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 33 );
+  }
+
+  signal create_xoi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 35 );
+  }
+
 #pragma endregion
 
 #pragma region Create nary functions
@@ -544,6 +641,54 @@ public:
   bool is_xor3( node const& n ) const
   {
     return _storage->nodes[n].data[1].h1 == 18;
+  }
+
+  bool is_mux21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 16;
+  }
+
+  bool is_nmux21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 17;
+  }
+
+  bool is_nand3( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 21;
+  }
+
+  bool is_nor3( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 23;
+  }
+
+  bool is_aoi21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 25;
+  }
+
+  bool is_oai21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 27;
+  }
+  bool is_axi21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 29;
+  }
+
+  bool is_xai21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 31;
+  }
+  bool is_oxi21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 33;
+  }
+
+  bool is_xoi21( node const& n ) const
+  {
+    return _storage->nodes[n].data[1].h1 == 35;
   }
 
   bool is_nary_and( node const& n ) const

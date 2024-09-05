@@ -37,9 +37,17 @@ struct read_verilog_params
  * - `create_nor`
  * - `create_xor`
  * - `create_xnor`
- * - `create_maj`
- * - `create_ite`
- * - `create_xor3`
+ * - `create_nand3`
+ * - `create_nor3`
+ * - `create_mux21`
+ * - `create_nmux21`
+ * - `create_aoi21`
+ * - `create_oai21`
+ * - `create_axi21`
+ * - `create_xai21`
+ * - `create_oxi21`
+ * - `create_xoi21`
+ *
  *
    \verbatim embed:rst
 
@@ -71,9 +79,16 @@ public:
     static_assert( has_create_nor_v<Ntk>, "Ntk does not implement the create_nor function" );
     static_assert( has_create_xor_v<Ntk>, "Ntk does not implement the create_xor function" );
     static_assert( has_create_xnor_v<Ntk>, "Ntk does not implement the create_xnor function" );
-    static_assert( has_create_ite_v<Ntk>, "Ntk does not implement the create_ite function" );
-    static_assert( has_create_maj_v<Ntk>, "Ntk does not implement the create_maj function" );
-    static_assert( has_create_xor3_v<Ntk>, "Ntk does not implement the create_xor3 function" );
+    static_assert( has_create_nand3_v<Ntk>, "Ntk does not implement the create_nand3 function" );
+    static_assert( has_create_nor3_v<Ntk>, "Ntk does not implement the create_nor3 function" );
+    static_assert( has_create_mux21_v<Ntk>, "Ntk does not implement the create_mux21 function" );
+    static_assert( has_create_nmux21_v<Ntk>, "Ntk does not implement the create_nmux21 function" );
+    static_assert( has_create_aoi21_v<Ntk>, "Ntk does not implement the create_aoi21 function" );
+    static_assert( has_create_oai21_v<Ntk>, "Ntk does not implement the create_oai21 function" );
+    static_assert( has_create_axi21_v<Ntk>, "Ntk does not implement the create_axi21 function" );
+    static_assert( has_create_xai21_v<Ntk>, "Ntk does not implement the create_xai21 function" );
+    static_assert( has_create_oxi21_v<Ntk>, "Ntk does not implement the create_oxi21 function" );
+    static_assert( has_create_xoi21_v<Ntk>, "Ntk does not implement the create_xoi21 function" );
 
     signals_["0"] = ntk_.get_constant( false );
     signals_["1"] = ntk_.get_constant( true );
@@ -365,6 +380,156 @@ public:
     auto b = signals_[op2.first];
     auto c = signals_[op3.first];
     signals_[lhs] = ntk_.create_xor3( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_nand3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_nand3( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_nor3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_nor3( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_mux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_mux21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_nmux21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_nmux21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_aoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_aoi21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_oai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_oai21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_axi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_axi21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_xai21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_xai21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_oxi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_oxi21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
+  }
+
+  void on_xoi21( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
+  {
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
+
+    auto a = signals_[op1.first];
+    auto b = signals_[op2.first];
+    auto c = signals_[op3.first];
+    signals_[lhs] = ntk_.create_xoi21( op1.second ? ntk_.create_not( a ) : a, op2.second ? ntk_.create_not( b ) : b, op3.second ? ntk_.create_not( c ) : c );
   }
 
   void on_module_instantiation( std::string const& module_name, std::vector<std::string> const& params, std::string const& inst_name,

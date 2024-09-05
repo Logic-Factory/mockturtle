@@ -24,21 +24,19 @@
  */
 
 /*!
-  \file aig.hpp
-  \brief AIG logic network implementation
-
-  \author Alessandro Tempia Calvino
-  \author Bruno Schmitt
-  \author Hanyu Wang
-  \author Heinz Riener
-  \author Jinzheng Tu
-  \author Mathias Soeken
-  \author Max Austin
-  \author Siang-Yun (Sonia) Lee
-  \author Walter Lau Neto
+  \file aog.hpp
+  \brief And-Or Graph (AOIG) logic network implementation
 */
 
 #pragma once
+
+#include <memory>
+#include <optional>
+#include <stack>
+#include <string>
+
+#include <kitty/dynamic_truth_table.hpp>
+#include <kitty/operators.hpp>
 
 #include "../traits.hpp"
 #include "../utils/algorithm.hpp"
@@ -46,22 +44,12 @@
 #include "events.hpp"
 #include "storage.hpp"
 
-#include <kitty/dynamic_truth_table.hpp>
-#include <kitty/operators.hpp>
-#include <kitty/partial_truth_table.hpp>
-
-#include <list>
-#include <memory>
-#include <optional>
-#include <stack>
-#include <string>
-
 namespace mockturtle
 {
 
-/*! \brief Hash function for AIGs (from ABC) */
+/*! \brief Hash function for AOGs -- the same as for AIGs (from ABC) */
 template<class Node>
-struct aig_hash
+struct aog_hash
 {
   uint64_t operator()( Node const& n ) const
   {
@@ -74,9 +62,9 @@ struct aig_hash
   }
 };
 
-/*! \brief AIG storage container
+/*! \brief AOG storage container
 
-  AIGs have nodes with fan-in 2.  We split of one bit of the index pointer to
+  AOGs have nodes with fan-in 2.  We split of one bit of the index pointer to
   store a complemented attribute.  Every node has 64-bit of additional data
   used for the following purposes:
 
@@ -85,20 +73,19 @@ struct aig_hash
   `data[1].h1`: Visited flag
   `data[1].h2`: Is terminal node (PI or CI)
 */
-using aig_storage = storage<regular_node<2, 2, 1>,
+using aog_storage = storage<regular_node<2, 2, 1>,
                             empty_storage_data,
-                            aig_hash<regular_node<2, 2, 1>>>;
+                            aog_hash<regular_node<2, 2, 1>>>;
 
-class aig_network
+class aog_network
 {
 public:
 #pragma region Types and constructors
-  static constexpr bool is_aig_network_type = true;
   static constexpr auto min_fanin_size = 2u;
   static constexpr auto max_fanin_size = 2u;
 
-  using base_type = aig_network;
-  using storage = std::shared_ptr<aig_storage>;
+  using base_type = aog_network;
+  using storage = std::shared_ptr<aog_storage>;
   using node = uint64_t;
 
   struct signal
@@ -115,7 +102,7 @@ public:
     {
     }
 
-    signal( aig_storage::node_type::pointer_type const& p )
+    signal( aog_storage::node_type::pointer_type const& p )
         : complement( p.weight ), index( p.index )
     {
     }
@@ -165,34 +152,34 @@ public:
       return data < other.data;
     }
 
-    operator aig_storage::node_type::pointer_type() const
+    operator aog_storage::node_type::pointer_type() const
     {
       return { index, complement };
     }
 
 #if __cplusplus > 201703L
-    bool operator==( aig_storage::node_type::pointer_type const& other ) const
+    bool operator==( aog_storage::node_type::pointer_type const& other ) const
     {
       return data == other.data;
     }
 #endif
   };
 
-  aig_network()
-      : _storage( std::make_shared<aig_storage>() ),
+  aog_network()
+      : _storage( std::make_shared<aog_storage>() ),
         _events( std::make_shared<decltype( _events )::element_type>() )
   {
   }
 
-  aig_network( std::shared_ptr<aig_storage> storage )
+  aog_network( std::shared_ptr<aog_storage> storage )
       : _storage( storage ),
         _events( std::make_shared<decltype( _events )::element_type>() )
   {
   }
 
-  aig_network clone() const
+  aog_network clone() const
   {
-    return { std::make_shared<aig_storage>( *_storage ) };
+    return { std::make_shared<aog_storage>( *_storage ) };
   }
 #pragma endregion
 
@@ -216,9 +203,9 @@ public:
   {
     /* increase ref-count to children */
     _storage->nodes[f.index].data[0].h1++;
-    auto const po_index = _storage->outputs.size();
+    auto const po_index = static_cast<uint32_t>( _storage->outputs.size() );
     _storage->outputs.emplace_back( f.index, f.complement );
-    return static_cast<uint32_t>( po_index );
+    return po_index;
   }
 
   bool is_combinational() const
@@ -261,24 +248,8 @@ public:
 #pragma endregion
 
 #pragma region Create binary functions
-  signal create_and( signal a, signal b )
+  signal _create_node( signal a, signal b )
   {
-    /* order inputs */
-    if ( a.index > b.index )
-    {
-      std::swap( a, b );
-    }
-
-    /* trivial cases */
-    if ( a.index == b.index )
-    {
-      return ( a.complement == b.complement ) ? a : get_constant( false );
-    }
-    else if ( a.index == 0 )
-    {
-      return a.complement ? b : get_constant( false );
-    }
-
     storage::element_type::node_type node;
     node.children[0] = a;
     node.children[1] = b;
@@ -287,7 +258,6 @@ public:
     const auto it = _storage->hash.find( node );
     if ( it != _storage->hash.end() )
     {
-      assert( !is_dead( it->second ) );
       return { it->second, 0 };
     }
 
@@ -315,19 +285,50 @@ public:
     return { index, 0 };
   }
 
+  signal create_and( signal a, signal b )
+  {
+    /* order inputs a < b it is a AND */
+    if ( a.index > b.index )
+    {
+      std::swap( a, b );
+    }
+    if ( a.index == b.index )
+    {
+      return a.complement == b.complement ? a : get_constant( false );
+    }
+    else if ( a.index == 0 )
+    {
+      return a.complement == false ? get_constant( false ) : b;
+    }
+    return _create_node( a, b );
+  }
+
   signal create_nand( signal const& a, signal const& b )
   {
     return !create_and( a, b );
   }
 
-  signal create_or( signal const& a, signal const& b )
+  signal create_or( signal a, signal b )
   {
-    return !create_and( !a, !b );
+    /* order inputs a > b it is a OR */
+    if ( a.index < b.index )
+    {
+      std::swap( a, b );
+    }
+    if ( a.index == b.index )
+    {
+      return a.complement == b.complement ? a : get_constant( true );
+    }
+    else if ( a.index == 0 )
+    {
+      return a.complement == false ? get_constant( false ) : b;
+    }
+    return _create_node( a, b );
   }
 
   signal create_nor( signal const& a, signal const& b )
   {
-    return create_and( !a, !b );
+    return !create_or( a, b );
   }
 
   signal create_lt( signal const& a, signal const& b )
@@ -342,10 +343,9 @@ public:
 
   signal create_xor( signal const& a, signal const& b )
   {
-    const auto fcompl = a.complement ^ b.complement;
-    const auto c1 = create_and( +a, -b );
-    const auto c2 = create_and( +b, -a );
-    return create_and( !c1, !c2 ) ^ !fcompl;
+    const auto c1 = create_and( a, !b );
+    const auto c2 = create_and( !a, b );
+    return create_or( c1, c2 );
   }
 
   signal create_xnor( signal const& a, signal const& b )
@@ -354,7 +354,7 @@ public:
   }
 #pragma endregion
 
-#pragma region Createy ternary functions
+#pragma region Create ternary functions
   signal create_ite( signal cond, signal f_then, signal f_else )
   {
     bool f_compl{ false };
@@ -370,12 +370,15 @@ public:
       f_compl = true;
     }
 
-    return create_and( !create_and( !cond, f_else ), !create_and( cond, f_then ) ) ^ !f_compl;
+    return create_xor( create_and( !cond, create_xor( f_then, f_else ) ), f_then ) ^ f_compl;
   }
 
   signal create_maj( signal const& a, signal const& b, signal const& c )
   {
-    return create_or( create_and( a, b ), create_and( c, !create_and( !a, !b ) ) );
+    auto c1 = create_xor( a, b );
+    auto c2 = create_xor( a, c );
+    auto c3 = create_and( c1, c2 );
+    return create_xor( a, c3 );
   }
 
   signal create_xor3( signal const& a, signal const& b, signal const& c )
@@ -432,7 +435,6 @@ public:
   {
     return !create_or( create_xor( a, c ), b );
   }
-
 #pragma endregion
 
 #pragma region Create nary functions
@@ -453,12 +455,17 @@ public:
 #pragma endregion
 
 #pragma region Create arbitrary functions
-  signal clone_node( aig_network const& other, node const& source, std::vector<signal> const& children )
+  signal clone_node( aog_network const& other, node const& source, std::vector<signal> const& children )
   {
-    (void)other;
-    (void)source;
     assert( children.size() == 2u );
-    return create_and( children[0u], children[1u] );
+    if ( other.is_and( source ) )
+    {
+      return create_and( children[0u], children[1u] );
+    }
+    else
+    {
+      return create_or( children[0u], children[1u] );
+    }
   }
 #pragma endregion
 
@@ -474,7 +481,40 @@ public:
     /* trivial cases */
     if ( a.index == b.index )
     {
-      return a.complement == b.complement ? a : get_constant( false );
+      return ( a.complement == b.complement ) ? a : get_constant( false );
+    }
+    else if ( a.index == 0 )
+    {
+      return a.complement == false ? get_constant( false ) : b;
+    }
+
+    storage::element_type::node_type node;
+    node.children[0] = a;
+    node.children[1] = b;
+
+    /* structural hashing */
+    const auto it = _storage->hash.find( node );
+    if ( it != _storage->hash.end() )
+    {
+      assert( !is_dead( it->second ) );
+      return signal( it->second, 0 );
+    }
+
+    return {};
+  }
+
+  std::optional<signal> has_or( signal a, signal b )
+  {
+    /* order inputs */
+    if ( a.index < b.index )
+    {
+      std::swap( a, b );
+    }
+
+    /* trivial cases */
+    if ( a.index == b.index )
+    {
+      return ( a.complement == b.complement ) ? a : get_constant( true );
     }
     else if ( a.index == 0 )
     {
@@ -518,11 +558,14 @@ public:
       return std::nullopt;
     }
 
+    // determine gate type of n
+    auto _is_and = node.children[0].index <= node.children[1].index;
+
     // determine potential new children of node n
     signal child1 = new_signal;
     signal child0 = node.children[fanin ^ 1];
 
-    if ( child0.index > child1.index )
+    if ( ( _is_and && child0.index > child1.index ) || ( !_is_and && child0.index < child1.index ) )
     {
       std::swap( child0, child1 );
     }
@@ -531,11 +574,22 @@ public:
     if ( child0.index == child1.index )
     {
       const auto diff_pol = child0.complement != child1.complement;
-      return std::make_pair( n, diff_pol ? get_constant( false ) : child1 );
+      if ( _is_and )
+      {
+        return std::make_pair( n, diff_pol ? get_constant( false ) : child1 );
+      }
+      else
+      {
+        return std::make_pair( n, get_constant( diff_pol ) );
+      }
     }
-    else if ( child0.index == 0 ) /* constant child */
+    else if ( _is_and && child0.index == 0 ) /* constant child */
     {
       return std::make_pair( n, child0.complement ? child1 : get_constant( false ) );
+    }
+    else if ( !_is_and && child1.index == 0 )
+    {
+      return std::make_pair( n, child0 ^ child1.complement );
     }
 
     // node already in hash table
@@ -590,13 +644,31 @@ public:
       return;
     }
 
+    // determine gate type of n
+    auto _is_and = node.children[0].index <= node.children[1].index;
+
     // determine potential new children of node n
     signal child1 = new_signal;
     signal child0 = node.children[fanin ^ 1];
 
-    if ( child0.index > child1.index )
+    if ( ( _is_and && child0.index > child1.index ) || ( !_is_and && child0.index < child1.index ) )
     {
       std::swap( child0, child1 );
+    }
+
+    // if a buffer is created adjust the polarities
+    if ( child0.index == child1.index && !_is_and )
+    {
+      if ( child0.complement == child1.complement )
+      {
+        child0.data = 0; // the buffer is a constant zero
+        child1.data = 0; // the buffer is a constant zero
+      }
+      else
+      {
+        child0.data = 1; // the buffer is a constant one
+        child1.data = 1; // the buffer is a constant zero
+      }
     }
 
     // don't check for trivial cases
@@ -608,7 +680,7 @@ public:
     // erase old node in hash table
     _storage->hash.erase( node );
 
-    // insert updated node into the hash table
+    // insert updated node into hash table
     node.children[0] = child0;
     node.children[1] = child1;
     if ( _storage->hash.find( node ) == _storage->hash.end() )
@@ -648,11 +720,10 @@ public:
 
   void take_out_node( node const& n )
   {
-    /* we cannot delete CIs, constants, or already dead nodes */
+    /* we cannot delete CIs or constants */
     if ( n == 0 || is_ci( n ) || is_dead( n ) )
       return;
 
-    /* delete the node (ignoring its current fanout_size) */
     auto& nobj = _storage->nodes[n];
     nobj.data[0].h1 = UINT32_C( 0x80000000 ); /* fanout size 0, but dead */
     _storage->hash.erase( nobj );
@@ -662,8 +733,6 @@ public:
       ( *fn )( n );
     }
 
-    /* if the node has been deleted, then deref fanout_size of
-       fanins and try to take them out if their fanout_size become 0 */
     for ( auto i = 0u; i < 2u; ++i )
     {
       if ( fanout_size( nobj.children[i].index ) == 0 )
@@ -750,7 +819,7 @@ public:
       /* check outputs */
       replace_in_outputs( _old, _new );
 
-      /* recursively reset old node */
+      // reset fan-in of old node
       if ( _old != _new.index )
       {
         old_to_new.insert( { _old, _new } );
@@ -782,97 +851,6 @@ public:
     {
       take_out_node( old_node );
     }
-  }
-
-  void substitute_nodes( std::list<std::pair<node, signal>> substitutions )
-  {
-    auto clean_substitutions = [&]( node const& n ) {
-      substitutions.erase( std::remove_if( std::begin( substitutions ), std::end( substitutions ),
-                                           [&]( auto const& s ) {
-                                             if ( s.first == n )
-                                             {
-                                               node const nn = get_node( s.second );
-                                               if ( is_dead( nn ) )
-                                                 return true;
-
-                                               /* deref fanout_size of the node */
-                                               if ( fanout_size( nn ) > 0 )
-                                               {
-                                                 decr_fanout_size( nn );
-                                               }
-                                               /* remove the node if it's fanout_size becomes 0 */
-                                               if ( fanout_size( nn ) == 0 )
-                                               {
-                                                 take_out_node( nn );
-                                               }
-                                               /* remove substitution from list */
-                                               return true;
-                                             }
-                                             return false; /* keep */
-                                           } ),
-                           std::end( substitutions ) );
-    };
-
-    /* register event to delete substitutions if their right-hand side
-       nodes get deleted */
-    auto clean_sub_event = _events->register_delete_event( clean_substitutions );
-
-    /* increment fanout_size of all signals to be used in
-       substitutions to ensure that they will not be deleted */
-    for ( const auto& s : substitutions )
-    {
-      incr_fanout_size( get_node( s.second ) );
-    }
-
-    while ( !substitutions.empty() )
-    {
-      auto const [old_node, new_signal] = substitutions.front();
-      substitutions.pop_front();
-
-      for ( auto index = 1u; index < _storage->nodes.size(); ++index )
-      {
-        /* skip CIs and dead nodes */
-        if ( is_ci( index ) || is_dead( index ) )
-          continue;
-
-        /* skip nodes that will be deleted */
-        if ( std::find_if( std::begin( substitutions ), std::end( substitutions ),
-                           [&index]( auto s ) { return s.first == index; } ) != std::end( substitutions ) )
-          continue;
-
-        /* replace in node */
-        if ( const auto repl = replace_in_node( index, old_node, new_signal ); repl )
-        {
-          incr_fanout_size( get_node( repl->second ) );
-          substitutions.emplace_back( *repl );
-        }
-      }
-
-      /* replace in outputs */
-      replace_in_outputs( old_node, new_signal );
-
-      /* replace in substitutions */
-      for ( auto& s : substitutions )
-      {
-        if ( get_node( s.second ) == old_node )
-        {
-          s.second = is_complemented( s.second ) ? !new_signal : new_signal;
-          incr_fanout_size( get_node( new_signal ) );
-        }
-      }
-
-      /* finally remove the node: note that we never decrement the
-         fanout_size of the old_node. instead, we remove the node and
-         reset its fanout_size to 0 knowing that it must be 0 after
-         substituting all references. */
-      assert( !is_dead( old_node ) );
-      take_out_node( old_node );
-
-      /* decrement fanout_size when released from substitution list */
-      decr_fanout_size( get_node( new_signal ) );
-    }
-
-    _events->release_delete_event( clean_sub_event );
   }
 #pragma endregion
 
@@ -931,7 +909,7 @@ public:
 
   bool is_and( node const& n ) const
   {
-    return n > 0 && !is_ci( n );
+    return n > 0 && !is_ci( n ) && ( _storage->nodes[n].children[0].index <= _storage->nodes[n].children[1].index );
   }
 
   bool is_nand( node const& n ) const
@@ -942,8 +920,7 @@ public:
 
   bool is_or( node const& n ) const
   {
-    (void)n;
-    return false;
+    return n > 0 && !is_ci( n ) && ( _storage->nodes[n].children[0].index > _storage->nodes[n].children[1].index );
   }
 
   bool is_nor( node const& n ) const
@@ -1074,10 +1051,17 @@ public:
 #pragma region Functional properties
   kitty::dynamic_truth_table node_function( const node& n ) const
   {
-    (void)n;
-    kitty::dynamic_truth_table _and( 2 );
-    _and._bits[0] = 0x8;
-    return _and;
+    kitty::dynamic_truth_table _func( 2 );
+    if ( _storage->nodes[n].children[0u].index <= _storage->nodes[n].children[1u].index )
+    {
+      _func._bits[0] = 0x8;
+      return _func;
+    }
+    else
+    {
+      _func._bits[0] = 0xe;
+      return _func;
+    }
   }
 #pragma endregion
 
@@ -1269,7 +1253,14 @@ public:
     auto v1 = *begin++;
     auto v2 = *begin++;
 
-    return ( v1 ^ c1.weight ) && ( v2 ^ c2.weight );
+    if ( c1.index <= c2.index )
+    {
+      return ( v1 ^ c1.weight ) && ( v2 ^ c2.weight );
+    }
+    else
+    {
+      return ( v1 ^ c1.weight ) ^ ( v2 ^ c2.weight );
+    }
   }
 
   template<typename Iterator>
@@ -1286,7 +1277,14 @@ public:
     auto tt1 = *begin++;
     auto tt2 = *begin++;
 
-    return ( c1.weight ? ~tt1 : tt1 ) & ( c2.weight ? ~tt2 : tt2 );
+    if ( c1.index <= c2.index )
+    {
+      return ( c1.weight ? ~tt1 : tt1 ) & ( c2.weight ? ~tt2 : tt2 );
+    }
+    else
+    {
+      return ( c1.weight ? ~tt1 : tt1 ) ^ ( c2.weight ? ~tt2 : tt2 );
+    }
   }
 
   /*! \brief Re-compute the last block. */
@@ -1310,7 +1308,14 @@ public:
     assert( result.num_blocks() == tt1.num_blocks() || ( result.num_blocks() == tt1.num_blocks() - 1 && result.num_bits() % 64 == 0 ) );
 
     result.resize( tt1.num_bits() );
-    result._bits.back() = ( c1.weight ? ~( tt1._bits.back() ) : tt1._bits.back() ) & ( c2.weight ? ~( tt2._bits.back() ) : tt2._bits.back() );
+    if ( c1.index <= c2.index )
+    {
+      result._bits.back() = ( c1.weight ? ~( tt1._bits.back() ) : tt1._bits.back() ) & ( c2.weight ? ~( tt2._bits.back() ) : tt2._bits.back() );
+    }
+    else
+    {
+      result._bits.back() = ( c1.weight ? ~( tt1._bits.back() ) : tt1._bits.back() ) ^ ( c2.weight ? ~( tt2._bits.back() ) : tt2._bits.back() );
+    }
     result.mask_bits();
   }
 #pragma endregion
@@ -1377,7 +1382,7 @@ public:
 #pragma endregion
 
 public:
-  std::shared_ptr<aig_storage> _storage;
+  std::shared_ptr<aog_storage> _storage;
   std::shared_ptr<network_events<base_type>> _events;
 };
 
@@ -1387,9 +1392,9 @@ namespace std
 {
 
 template<>
-struct hash<mockturtle::aig_network::signal>
+struct hash<mockturtle::aog_network::signal>
 {
-  uint64_t operator()( mockturtle::aig_network::signal const& s ) const noexcept
+  uint64_t operator()( mockturtle::aog_network::signal const& s ) const noexcept
   {
     uint64_t k = s.data;
     k ^= k >> 33;

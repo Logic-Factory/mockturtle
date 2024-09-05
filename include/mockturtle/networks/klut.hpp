@@ -170,6 +170,46 @@ protected:
     kitty::create_from_words( tt_xor3, &_xor3, &_xor3 + 1 );
     _storage->data.cache.insert( tt_xor3 );
 
+    static uint64_t _nand3 = 0x7f;            // !(a and b and c) 0111,1111
+    kitty::dynamic_truth_table tt_nand3( 3 ); // func-id: 21
+    kitty::create_from_words( tt_nand3, &_nand3, &_nand3 + 1 );
+    _storage->data.cache.insert( tt_nand3 );
+
+    static uint64_t _nor3 = 0x01;            // !(a or b or c) 0000,0001
+    kitty::dynamic_truth_table tt_nor3( 3 ); // func-id: 23
+    kitty::create_from_words( tt_nor3, &_nor3, &_nor3 + 1 );
+    _storage->data.cache.insert( tt_nor3 );
+
+    static uint64_t _aoi21 = 0x15;            // !((a and b) or c) 0001,0101
+    kitty::dynamic_truth_table tt_aoi21( 3 ); // func-id: 25
+    kitty::create_from_words( tt_aoi21, &_aoi21, &_aoi21 + 1 );
+    _storage->data.cache.insert( tt_aoi21 );
+
+    static uint64_t _oai21 = 0x57;            // !((a or b) and c) 0101,0111
+    kitty::dynamic_truth_table tt_oai21( 3 ); // func-id: 27
+    kitty::create_from_words( tt_oai21, &_oai21, &_oai21 + 1 );
+    _storage->data.cache.insert( tt_oai21 );
+
+    static uint64_t _axi21 = 0x95;            // !((a and b) xor c) 1001,0101
+    kitty::dynamic_truth_table tt_axi21( 3 ); // func-id: 29
+    kitty::create_from_words( tt_axi21, &_axi21, &_axi21 + 1 );
+    _storage->data.cache.insert( tt_axi21 );
+
+    static uint64_t _xai21 = 0xd7;            // !((a xor b) and c) 1101,0111
+    kitty::dynamic_truth_table tt_xai21( 3 ); // func-id: 31
+    kitty::create_from_words( tt_xai21, &_xai21, &_xai21 + 1 );
+    _storage->data.cache.insert( tt_xai21 );
+
+    static uint64_t _oxi21 = 0xa9;            // !((a or b) xor c) 1010,1001
+    kitty::dynamic_truth_table tt_oxi21( 3 ); // func-id: 33
+    kitty::create_from_words( tt_oxi21, &_oxi21, &_oxi21 + 1 );
+    _storage->data.cache.insert( tt_oxi21 );
+
+    static uint64_t _xoi21 = 0x41;            // !((a xor b) or c) 0100,0001
+    kitty::dynamic_truth_table tt_xoi21( 3 ); // func-id: 35
+    kitty::create_from_words( tt_xoi21, &_xoi21, &_xoi21 + 1 );
+    _storage->data.cache.insert( tt_xoi21 );
+
     /* truth tables for constants */
     _storage->nodes[0].data[1].h1 = 0;
     _storage->nodes[1].data[1].h1 = 1;
@@ -299,6 +339,56 @@ public:
   signal create_xor3( signal a, signal b, signal c )
   {
     return _create_node( { a, b, c }, 18 );
+  }
+
+  signal create_mux21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 16 ); // same as ite
+  }
+
+  signal create_nmux21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 17 );
+  }
+
+  signal create_nand3( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 21 );
+  }
+
+  signal create_nor3( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 23 );
+  }
+
+  signal create_aoi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 25 );
+  }
+
+  signal create_oai21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 27 );
+  }
+
+  signal create_axi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 29 );
+  }
+
+  signal create_xai21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 31 );
+  }
+
+  signal create_oxi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 33 );
+  }
+
+  signal create_xoi21( signal a, signal b, signal c )
+  {
+    return _create_node( { a, b, c }, 35 );
   }
 #pragma endregion
 

@@ -34,15 +34,18 @@
 
 #include "../traits.hpp"
 #include "aig.hpp"
+#include "aog.hpp"
 #include "aqfp.hpp"
 #include "cover.hpp"
 #include "detail/foreach.hpp"
 #include "gtg.hpp"
 #include "klut.hpp"
 #include "mig.hpp"
+#include "oig.hpp"
 #include "primary.hpp"
 #include "xag.hpp"
 #include "xmg.hpp"
+#include "xog.hpp"
 
 namespace mockturtle
 {
@@ -80,7 +83,15 @@ struct is_aig_like<gtg_network> : std::true_type
 {
 };
 template<>
-struct is_aig_like<aqfp_network> : std::true_type
+struct is_aig_like<oig_network> : std::true_type
+{
+};
+template<>
+struct is_aig_like<aog_network> : std::true_type
+{
+};
+template<>
+struct is_aig_like<xog_network> : std::true_type
 {
 };
 
@@ -368,18 +379,20 @@ public:
   sequential()
       : _sequential_storage( std::make_shared<sequential_information>() )
   {
-    static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, xag_network> ||
-                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> || std::is_same_v<base_type, primary_network> ||
-                       std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
+    static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, oig_network> || std::is_same_v<base_type, aog_network> ||
+                       std::is_same_v<base_type, xag_network> || std::is_same_v<base_type, xog_network> ||
+                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> ||
+                       std::is_same_v<base_type, primary_network> || std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
                    "Sequential interfaces extended for unknown network type. Please check the compatibility of implementations." );
   }
 
   sequential( storage base_storage )
       : Ntk( base_storage ), _sequential_storage( std::make_shared<sequential_information>() )
   {
-    static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, xag_network> ||
-                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> || std::is_same_v<base_type, primary_network> ||
-                       std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
+    static_assert( std::is_same_v<base_type, aig_network> || std::is_same_v<base_type, oig_network> || std::is_same_v<base_type, aog_network> ||
+                       std::is_same_v<base_type, xag_network> || std::is_same_v<base_type, xog_network> ||
+                       std::is_same_v<base_type, mig_network> || std::is_same_v<base_type, xmg_network> ||
+                       std::is_same_v<base_type, primary_network> || std::is_same_v<base_type, gtg_network> || std::is_same_v<base_type, aqfp_network>,
                    "Sequential interfaces extended for unknown network type. Please check the compatibility of implementations." );
   }
 

@@ -93,6 +93,51 @@ template<class Ntk>
 inline constexpr bool is_aig_network_type_v = is_aig_network_type<Ntk>::value;
 #pragma endregion
 
+#pragma region is_oig_network_type
+template<class Ntk, class = void>
+struct is_oig_network_type : std::false_type
+{
+};
+
+template<class Ntk>
+struct is_oig_network_type<Ntk, std::enable_if_t<Ntk::is_oig_network_type, std::void_t<decltype( Ntk::is_oig_network_type )>>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool is_oig_network_type_v = is_oig_network_type<Ntk>::value;
+#pragma endregion
+
+#pragma region is_aog_network_type
+template<class Ntk, class = void>
+struct is_aog_network_type : std::false_type
+{
+};
+
+template<class Ntk>
+struct is_aog_network_type<Ntk, std::enable_if_t<Ntk::is_aog_network_type, std::void_t<decltype( Ntk::is_aog_network_type )>>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool is_aog_network_type_v = is_aog_network_type<Ntk>::value;
+#pragma endregion
+
+#pragma region is_xog_network_type
+template<class Ntk, class = void>
+struct is_xog_network_type : std::false_type
+{
+};
+
+template<class Ntk>
+struct is_xog_network_type<Ntk, std::enable_if_t<Ntk::is_xog_network_type, std::void_t<decltype( Ntk::is_xog_network_type )>>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool is_xog_network_type_v = is_xog_network_type<Ntk>::value;
+#pragma endregion
+
 #pragma region is_buffered_network_type
 template<class Ntk, class = void>
 struct is_buffered_network_type : std::false_type
@@ -571,6 +616,156 @@ struct has_create_xor3<Ntk, std::void_t<decltype( std::declval<Ntk>().create_xor
 
 template<class Ntk>
 inline constexpr bool has_create_xor3_v = has_create_xor3<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_mux21
+template<class Ntk, class = void>
+struct has_create_mux21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_mux21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_mux21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_mux21_v = has_create_mux21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_nmux21
+template<class Ntk, class = void>
+struct has_create_nmux21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_nmux21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_nmux21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_nmux21_v = has_create_nmux21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_nand3
+template<class Ntk, class = void>
+struct has_create_nand3 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_nand3<Ntk, std::void_t<decltype( std::declval<Ntk>().create_nand3( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_nand3_v = has_create_nand3<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_nor3
+template<class Ntk, class = void>
+struct has_create_nor3 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_nor3<Ntk, std::void_t<decltype( std::declval<Ntk>().create_nor3( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_nor3_v = has_create_nand3<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_aoi21
+template<class Ntk, class = void>
+struct has_create_aoi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_aoi21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_aoi21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_aoi21_v = has_create_aoi21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_oai21
+template<class Ntk, class = void>
+struct has_create_oai21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_oai21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_oai21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_oai21_v = has_create_oai21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_axi21
+template<class Ntk, class = void>
+struct has_create_axi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_axi21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_axi21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_axi21_v = has_create_axi21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_xai21
+template<class Ntk, class = void>
+struct has_create_xai21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_xai21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_xai21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_xai21_v = has_create_xai21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_oxi21
+template<class Ntk, class = void>
+struct has_create_oxi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_oxi21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_oxi21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_oxi21_v = has_create_oxi21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_create_xoi21
+template<class Ntk, class = void>
+struct has_create_xoi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_create_xoi21<Ntk, std::void_t<decltype( std::declval<Ntk>().create_xoi21( std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>(), std::declval<signal<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_create_xoi21_v = has_create_xoi21<Ntk>::value;
 #pragma endregion
 
 #pragma region has_create_nary_and
@@ -1441,6 +1636,156 @@ struct has_is_xor3<Ntk, std::void_t<decltype( std::declval<Ntk>().is_xor3( std::
 
 template<class Ntk>
 inline constexpr bool has_is_xor3_v = has_is_xor3<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_mux21
+template<class Ntk, class = void>
+struct has_is_mux21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_mux21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_mux21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_mux21_v = has_is_mux21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_nmux21
+template<class Ntk, class = void>
+struct has_is_nmux21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_nmux21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_nmux21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_nmux21_v = has_is_nmux21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_nand3
+template<class Ntk, class = void>
+struct has_is_nand3 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_nand3<Ntk, std::void_t<decltype( std::declval<Ntk>().is_nand3( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_nand3_v = has_is_nand3<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_nor3
+template<class Ntk, class = void>
+struct has_is_nor3 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_nor3<Ntk, std::void_t<decltype( std::declval<Ntk>().is_nor3( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_nor3_v = has_is_nor3<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_aoi21
+template<class Ntk, class = void>
+struct has_is_aoi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_aoi21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_aoi21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_aoi21_v = has_is_aoi21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_oai21
+template<class Ntk, class = void>
+struct has_is_oai21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_oai21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_oai21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_oai21_v = has_is_oai21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_axi21
+template<class Ntk, class = void>
+struct has_is_axi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_axi21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_axi21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_axi21_v = has_is_axi21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_xai21
+template<class Ntk, class = void>
+struct has_is_xai21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_xai21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_xai21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_xai21_v = has_is_xai21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_oxi21
+template<class Ntk, class = void>
+struct has_is_oxi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_oxi21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_oxi21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_oxi21_v = has_is_oxi21<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_xoi21
+template<class Ntk, class = void>
+struct has_is_xoi21 : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_xoi21<Ntk, std::void_t<decltype( std::declval<Ntk>().is_xoi21( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_xoi21_v = has_is_xoi21<Ntk>::value;
 #pragma endregion
 
 #pragma region has_is_nary_and

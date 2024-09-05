@@ -440,6 +440,56 @@ public:
   {
     return create_xor3( get_constant( true ), a, b );
   }
+
+  signal create_mux21( signal const& cond, signal const& f_then, signal const& f_else )
+  {
+    return create_ite( cond, f_then, f_else );
+  }
+
+  signal create_nmux21( signal const& cond, signal const& f_then, signal const& f_else )
+  {
+    return !create_ite( cond, f_then, f_else );
+  }
+
+  signal create_nand3( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_and( a, create_and( b, c ) );
+  }
+
+  signal create_nor3( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_or( a, create_or( b, c ) );
+  }
+
+  signal create_aoi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_or( create_and( a, b ), c );
+  }
+
+  signal create_oai21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_and( create_or( a, b ), c );
+  }
+
+  signal create_axi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_xor( create_and( a, c ), b );
+  }
+
+  signal create_xai21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_and( create_xor( a, c ), b );
+  }
+
+  signal create_oxi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_xor( create_or( a, c ), b );
+  }
+
+  signal create_xoi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_or( create_xor( a, c ), b );
+  }
 #pragma endregion
 
 #pragma region Create nary functions
@@ -1128,6 +1178,64 @@ public:
   bool is_xor3( node const& n ) const
   {
     return n > 0 && !is_ci( n ) && _storage->nodes[n].children[0].index > _storage->nodes[n].children[1].index;
+  }
+  
+  bool is_mux21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nmux21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nand3( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nor3( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_aoi21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_oai21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+  bool is_axi21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_xai21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+  bool is_oxi21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_xoi21( node const& n ) const
+  {
+    (void)n;
+    return false;
   }
 
   bool is_nary_and( node const& n ) const

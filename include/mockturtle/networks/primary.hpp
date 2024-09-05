@@ -346,42 +346,42 @@ public:
 
   signal create_and( signal a, signal b )
   {
-    if ( a.index < b.index )
+    if ( a.index > b.index )
       std::swap( a, b );
     return _create_node( { a, b }, 4 );
   }
 
   signal create_nand( signal a, signal b )
   {
-    if ( a.index < b.index )
+    if ( a.index > b.index )
       std::swap( a, b );
     return _create_node( { a, b }, 5 );
   }
 
   signal create_or( signal a, signal b )
   {
-    if ( a.index < b.index )
+    if ( a.index > b.index )
       std::swap( a, b );
     return _create_node( { a, b }, 6 );
   }
 
   signal create_nor( signal a, signal b )
   {
-    if ( a.index < b.index )
+    if ( a.index > b.index )
       std::swap( a, b );
     return _create_node( { a, b }, 7 );
   }
 
   signal create_xor( signal a, signal b )
   {
-    if ( a.index < b.index )
+    if ( a.index > b.index )
       std::swap( a, b );
     return _create_node( { a, b }, 12 );
   }
 
   signal create_xnor( signal a, signal b )
   {
-    if ( a.index < b.index )
+    if ( a.index > b.index )
       std::swap( a, b );
     return _create_node( { a, b }, 13 );
   }
@@ -398,7 +398,7 @@ public:
     return !create_and( a, !b );
   }
 
-  signal create_maj( signal a, signal b, signal c )
+  signal create_maj( signal const& a, signal const& b, signal const& c )
   {
     auto c1 = create_xor( a, b );
     auto c2 = create_xor( a, c );
@@ -423,9 +423,59 @@ public:
     return create_and( !create_and( !cond, f_else ), !create_and( cond, f_then ) ) ^ !f_compl;
   }
 
-  signal create_xor3( signal a, signal b, signal c )
+  signal create_xor3( signal const& a, signal const& b, signal const& c )
   {
     return create_xor( create_xor( a, b ), c );
+  }
+
+  signal create_mux21( signal const& cond, signal const& f_then, signal const& f_else )
+  {
+    return create_ite( cond, f_then, f_else );
+  }
+
+  signal create_nmux21( signal const& cond, signal const& f_then, signal const& f_else )
+  {
+    return !create_ite( cond, f_then, f_else );
+  }
+
+  signal create_nand3( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_and( a, create_and( b, c ) );
+  }
+
+  signal create_nor3( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_or( a, create_or( b, c ) );
+  }
+
+  signal create_aoi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_or( create_and( a, b ), c );
+  }
+
+  signal create_oai21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_and( create_or( a, b ), c );
+  }
+
+  signal create_axi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_xor( create_and( a, c ), b );
+  }
+
+  signal create_xai21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_and( create_xor( a, c ), b );
+  }
+
+  signal create_oxi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_xor( create_or( a, c ), b );
+  }
+
+  signal create_xoi21( signal const& a, signal const& b, signal const& c )
+  {
+    return !create_or( create_xor( a, c ), b );
   }
 #pragma endregion
 
@@ -457,92 +507,7 @@ public:
 #pragma endregion
 
 #pragma region Has node
-  std::optional<signal> has_and( signal a, signal b )
-  {
-    /* order inputs */
-    if ( a.index > b.index )
-    {
-      std::swap( a, b );
-    }
 
-    /* trivial cases */
-    if ( a.index == b.index )
-    {
-      return ( a.complement == b.complement ) ? a : get_constant( false );
-    }
-    else if ( a.index == 0 )
-    {
-      return a.complement == false ? get_constant( false ) : b;
-    }
-
-    storage::element_type::node_type node;
-    node.children[0] = a;
-    node.children[1] = b;
-
-    /* structural hashing */
-    const auto it = _storage->hash.find( node );
-    if ( it != _storage->hash.end() )
-    {
-      assert( !is_dead( it->second ) );
-      return signal( it->second, 0 );
-    }
-    return {};
-  }
-
-  std::optional<signal> has_nand( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_or( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_nor( signal a, signal b )
-  {
-    return {};
-  }
-
-  std::optional<signal> has_xor( signal a, signal b )
-  {
-    /* order inputs */
-    if ( a.index < b.index )
-    {
-      std::swap( a, b );
-    }
-
-    bool f_compl = a.complement != b.complement;
-    a.complement = b.complement = false;
-
-    /* trivial cases */
-    if ( a.index == b.index )
-    {
-      return get_constant( f_compl );
-    }
-    else if ( b.index == 0 )
-    {
-      return a ^ f_compl;
-    }
-
-    storage::element_type::node_type node;
-    node.children[0] = a;
-    node.children[1] = b;
-
-    /* structural hashing */
-    const auto it = _storage->hash.find( node );
-    if ( it != _storage->hash.end() )
-    {
-      assert( !is_dead( it->second ) );
-      return signal( it->second, f_compl );
-    }
-    return {};
-  }
-
-  std::optional<signal> has_xnor( signal a, signal b )
-  {
-    return {};
-  }
 #pragma endregion
 
 #pragma region Structural properties
@@ -661,6 +626,64 @@ public:
     return false;
   }
 
+  bool is_mux21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nmux21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nand3( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nor3( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_aoi21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_oai21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+  bool is_axi21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_xai21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+  bool is_oxi21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_xoi21( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+  
   bool is_nary_and( node const& n ) const
   {
     (void)n;

@@ -24,18 +24,8 @@
  */
 
 /*!
-  \file aig.hpp
-  \brief AIG logic network implementation
-
-  \author Alessandro Tempia Calvino
-  \author Bruno Schmitt
-  \author Hanyu Wang
-  \author Heinz Riener
-  \author Jinzheng Tu
-  \author Mathias Soeken
-  \author Max Austin
-  \author Siang-Yun (Sonia) Lee
-  \author Walter Lau Neto
+  \file oig.hpp
+  \brief OIG logic network implementation
 */
 
 #pragma once
@@ -61,11 +51,11 @@ namespace mockturtle
 
 /*! \brief Hash function for AIGs (from ABC) */
 template<class Node>
-struct aig_hash
+struct oig_hash
 {
   uint64_t operator()( Node const& n ) const
   {
-    uint64_t seed = -2011;
+    uint64_t seed = -2024;
     seed += n.children[0].index * 7937;
     seed += n.children[1].index * 2971;
     seed += n.children[0].weight * 911;
@@ -74,9 +64,9 @@ struct aig_hash
   }
 };
 
-/*! \brief AIG storage container
+/*! \brief OIG storage container
 
-  AIGs have nodes with fan-in 2.  We split of one bit of the index pointer to
+  OIGs have nodes with fan-in 2.  We split of one bit of the index pointer to
   store a complemented attribute.  Every node has 64-bit of additional data
   used for the following purposes:
 
@@ -85,20 +75,20 @@ struct aig_hash
   `data[1].h1`: Visited flag
   `data[1].h2`: Is terminal node (PI or CI)
 */
-using aig_storage = storage<regular_node<2, 2, 1>,
+using oig_storage = storage<regular_node<2, 2, 1>,
                             empty_storage_data,
-                            aig_hash<regular_node<2, 2, 1>>>;
+                            oig_hash<regular_node<2, 2, 1>>>;
 
-class aig_network
+class oig_network
 {
 public:
 #pragma region Types and constructors
-  static constexpr bool is_aig_network_type = true;
+  static constexpr bool is_oig_network_type = true;
   static constexpr auto min_fanin_size = 2u;
   static constexpr auto max_fanin_size = 2u;
 
-  using base_type = aig_network;
-  using storage = std::shared_ptr<aig_storage>;
+  using base_type = oig_network;
+  using storage = std::shared_ptr<oig_storage>;
   using node = uint64_t;
 
   struct signal
@@ -115,7 +105,7 @@ public:
     {
     }
 
-    signal( aig_storage::node_type::pointer_type const& p )
+    signal( oig_storage::node_type::pointer_type const& p )
         : complement( p.weight ), index( p.index )
     {
     }
@@ -165,34 +155,34 @@ public:
       return data < other.data;
     }
 
-    operator aig_storage::node_type::pointer_type() const
+    operator oig_storage::node_type::pointer_type() const
     {
       return { index, complement };
     }
 
 #if __cplusplus > 201703L
-    bool operator==( aig_storage::node_type::pointer_type const& other ) const
+    bool operator==( oig_storage::node_type::pointer_type const& other ) const
     {
       return data == other.data;
     }
 #endif
   };
 
-  aig_network()
-      : _storage( std::make_shared<aig_storage>() ),
+  oig_network()
+      : _storage( std::make_shared<oig_storage>() ),
         _events( std::make_shared<decltype( _events )::element_type>() )
   {
   }
 
-  aig_network( std::shared_ptr<aig_storage> storage )
+  oig_network( std::shared_ptr<oig_storage> storage )
       : _storage( storage ),
         _events( std::make_shared<decltype( _events )::element_type>() )
   {
   }
 
-  aig_network clone() const
+  oig_network clone() const
   {
-    return { std::make_shared<aig_storage>( *_storage ) };
+    return { std::make_shared<oig_storage>( *_storage ) };
   }
 #pragma endregion
 
@@ -261,7 +251,18 @@ public:
 #pragma endregion
 
 #pragma region Create binary functions
-  signal create_and( signal a, signal b )
+
+  signal create_and( signal const& a, signal const& b )
+  {
+    return !create_or( !a, !b );
+  }
+
+  signal create_nand( signal const& a, signal const& b )
+  {
+    return !create_and( a, b );
+  }
+
+  signal create_or( signal a, signal b )
   {
     /* order inputs */
     if ( a.index > b.index )
@@ -315,19 +316,9 @@ public:
     return { index, 0 };
   }
 
-  signal create_nand( signal const& a, signal const& b )
-  {
-    return !create_and( a, b );
-  }
-
-  signal create_or( signal const& a, signal const& b )
-  {
-    return !create_and( !a, !b );
-  }
-
   signal create_nor( signal const& a, signal const& b )
   {
-    return create_and( !a, !b );
+    return !create_or( a, b );
   }
 
   signal create_lt( signal const& a, signal const& b )
@@ -342,10 +333,9 @@ public:
 
   signal create_xor( signal const& a, signal const& b )
   {
-    const auto fcompl = a.complement ^ b.complement;
-    const auto c1 = create_and( +a, -b );
-    const auto c2 = create_and( +b, -a );
-    return create_and( !c1, !c2 ) ^ !fcompl;
+    const auto c1 = create_and( a, !b );
+    const auto c2 = create_and( !a, b );
+    return create_or( c1, c2 );
   }
 
   signal create_xnor( signal const& a, signal const& b )
@@ -432,7 +422,6 @@ public:
   {
     return !create_or( create_xor( a, c ), b );
   }
-
 #pragma endregion
 
 #pragma region Create nary functions
@@ -453,7 +442,7 @@ public:
 #pragma endregion
 
 #pragma region Create arbitrary functions
-  signal clone_node( aig_network const& other, node const& source, std::vector<signal> const& children )
+  signal clone_node( oig_network const& other, node const& source, std::vector<signal> const& children )
   {
     (void)other;
     (void)source;
@@ -463,7 +452,7 @@ public:
 #pragma endregion
 
 #pragma region Has node
-  std::optional<signal> has_and( signal a, signal b )
+  std::optional<signal> has_or( signal a, signal b )
   {
     /* order inputs */
     if ( a.index > b.index )
@@ -931,7 +920,8 @@ public:
 
   bool is_and( node const& n ) const
   {
-    return n > 0 && !is_ci( n );
+    (void)n;
+    return false;
   }
 
   bool is_nand( node const& n ) const
@@ -942,8 +932,7 @@ public:
 
   bool is_or( node const& n ) const
   {
-    (void)n;
-    return false;
+    return n > 0 && !is_ci( n );
   }
 
   bool is_nor( node const& n ) const
@@ -1075,9 +1064,9 @@ public:
   kitty::dynamic_truth_table node_function( const node& n ) const
   {
     (void)n;
-    kitty::dynamic_truth_table _and( 2 );
-    _and._bits[0] = 0x8;
-    return _and;
+    kitty::dynamic_truth_table _or( 2 );
+    _or._bits[0] = 0xe;
+    return _or;
   }
 #pragma endregion
 
@@ -1377,7 +1366,7 @@ public:
 #pragma endregion
 
 public:
-  std::shared_ptr<aig_storage> _storage;
+  std::shared_ptr<oig_storage> _storage;
   std::shared_ptr<network_events<base_type>> _events;
 };
 
@@ -1387,9 +1376,9 @@ namespace std
 {
 
 template<>
-struct hash<mockturtle::aig_network::signal>
+struct hash<mockturtle::oig_network::signal>
 {
-  uint64_t operator()( mockturtle::aig_network::signal const& s ) const noexcept
+  uint64_t operator()( mockturtle::oig_network::signal const& s ) const noexcept
   {
     uint64_t k = s.data;
     k ^= k >> 33;

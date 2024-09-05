@@ -180,7 +180,7 @@ public:
     {
       if ( ntk.is_and( n ) )
       {
-        return std::to_string( ntk.node_to_index( n ) ) + "-and";
+        return std::to_string( ntk.node_to_index( n ) ) + "-and2";
       }
     }
 
@@ -188,7 +188,7 @@ public:
     {
       if ( ntk.is_nand( n ) )
       {
-        return std::to_string( ntk.node_to_index( n ) ) + "-nand";
+        return std::to_string( ntk.node_to_index( n ) ) + "-nand2";
       }
     }
 
@@ -196,7 +196,7 @@ public:
     {
       if ( ntk.is_or( n ) )
       {
-        return std::to_string( ntk.node_to_index( n ) ) + "-or";
+        return std::to_string( ntk.node_to_index( n ) ) + "-or2";
       }
     }
 
@@ -204,7 +204,7 @@ public:
     {
       if ( ntk.is_nor( n ) )
       {
-        return std::to_string( ntk.node_to_index( n ) ) + "-nor";
+        return std::to_string( ntk.node_to_index( n ) ) + "-nor2";
       }
     }
 
@@ -212,7 +212,7 @@ public:
     {
       if ( ntk.is_xor( n ) )
       {
-        return std::to_string( ntk.node_to_index( n ) ) + "-xor";
+        return std::to_string( ntk.node_to_index( n ) ) + "-xor2";
       }
     }
 
@@ -220,7 +220,7 @@ public:
     {
       if ( ntk.is_xnor( n ) )
       {
-        return std::to_string( ntk.node_to_index( n ) ) + "-xnor";
+        return std::to_string( ntk.node_to_index( n ) ) + "-xnor2";
       }
     }
 
@@ -232,36 +232,91 @@ public:
       }
     }
 
-    if constexpr ( has_is_ite_v<Ntk> )
-    {
-      if ( ntk.is_ite( n ) )
-      {
-        return std::to_string( ntk.node_to_index( n ) ) + "-mux";
-      }
-    }
-
-    // if constexpr ( has_is_maj_v<Ntk> )
-    // {
-    //   if ( ntk.is_maj( n ) )
-    //   {
-    //     std::string label{ "MAJ" };
-    //     ntk.foreach_fanin( n, [&]( auto const& f ) {
-    //       if ( ntk.is_constant( ntk.get_node( f ) ) )
-    //       {
-    //         const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
-    //         label = v ? std::to_string( ntk.node_to_index( n ) )+"-or" : std::to_string( ntk.node_to_index( n ) )+"-and";
-    //         return false;
-    //       }
-    //       return true; } );
-    //     return label;
-    //   }
-    // }
-
     if constexpr ( has_is_xor3_v<Ntk> )
     {
       if ( ntk.is_xor3( n ) )
       {
         return std::to_string( ntk.node_to_index( n ) ) + "-xor3";
+      }
+    }
+
+    if constexpr ( has_is_mux21_v<Ntk> )
+    {
+      if ( ntk.is_mux21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-mux21";
+      }
+    }
+
+    if constexpr ( has_is_nmux21_v<Ntk> )
+    {
+      if ( ntk.is_nmux21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-nmux21";
+      }
+    }
+
+    if constexpr ( has_is_nand3_v<Ntk> )
+    {
+      if ( ntk.is_nand3( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-nand3";
+      }
+    }
+
+    if constexpr ( has_is_nor3_v<Ntk> )
+    {
+      if ( ntk.is_nor3( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-nor3";
+      }
+    }
+
+    if constexpr ( has_is_aoi21_v<Ntk> )
+    {
+      if ( ntk.is_aoi21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-aoi21";
+      }
+    }
+
+    if constexpr ( has_is_oai21_v<Ntk> )
+    {
+      if ( ntk.is_oai21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-oai21";
+      }
+    }
+
+    if constexpr ( has_is_axi21_v<Ntk> )
+    {
+      if ( ntk.is_axi21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-axi21";
+      }
+    }
+
+    if constexpr ( has_is_xai21_v<Ntk> )
+    {
+      if ( ntk.is_xai21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-xai21";
+      }
+    }
+
+    if constexpr ( has_is_oxi21_v<Ntk> )
+    {
+      if ( ntk.is_oxi21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-oxi21";
+      }
+    }
+
+    if constexpr ( has_is_xoi21_v<Ntk> )
+    {
+      if ( ntk.is_xoi21( n ) )
+      {
+        return std::to_string( ntk.node_to_index( n ) ) + "-xoi21";
       }
     }
 
@@ -375,35 +430,89 @@ public:
       }
     }
 
-    if constexpr ( has_is_ite_v<Ntk> )
+    if constexpr ( has_is_xor3_v<Ntk> )
     {
-      if ( ntk.is_ite( n ) )
+      if ( ntk.is_xor3( n ) )
       {
         return "lightskyblue";
       }
     }
 
-    // if constexpr ( has_is_maj_v<Ntk> )
-    // {
-    //   if ( ntk.is_maj( n ) )
-    //   {
-    //     std::string color{ "lightsalmon" };
-    //     ntk.foreach_fanin( n, [&]( auto const& f ) {
-    //       if ( ntk.is_constant( ntk.get_node( f ) ) )
-    //       {
-    //         const auto v = ntk.constant_value( ntk.get_node( f ) ) != ntk.is_complemented( f );
-    //         color = v ? "palegreen2" : "lightcoral";
-    //         return false;
-    //       }
-    //       return true;
-    //     } );
-    //     return color;
-    //   }
-    // }
-
-    if constexpr ( has_is_xor3_v<Ntk> )
+    if constexpr ( has_is_mux21_v<Ntk> )
     {
-      if ( ntk.is_xor3( n ) )
+      if ( ntk.is_mux21( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_nmux21_v<Ntk> )
+    {
+      if ( ntk.is_nmux21( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_nand3_v<Ntk> )
+    {
+      if ( ntk.is_nand3( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_nor3_v<Ntk> )
+    {
+      if ( ntk.is_nor3( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_aoi21_v<Ntk> )
+    {
+      if ( ntk.is_aoi21( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_oai21_v<Ntk> )
+    {
+      if ( ntk.is_oai21( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_axi21_v<Ntk> )
+    {
+      if ( ntk.is_axi21( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_xai21_v<Ntk> )
+    {
+      if ( ntk.is_xai21( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_oxi21_v<Ntk> )
+    {
+      if ( ntk.is_oxi21( n ) )
+      {
+        return "lightskyblue";
+      }
+    }
+
+    if constexpr ( has_is_xoi21_v<Ntk> )
+    {
+      if ( ntk.is_xoi21( n ) )
       {
         return "lightskyblue";
       }
