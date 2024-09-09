@@ -398,68 +398,61 @@ void write_verilog( Ntk const& ntk, std::ostream& os, write_verilog_params const
     {
       writer.on_assign( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ), "&" );
     }
+    else if ( ntk.is_nand( n ) || ntk.is_nand3( n ) )
+    {
+      writer.on_assign( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ), "&", false );
+    }
     else if ( ntk.is_or( n ) )
     {
       writer.on_assign( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ), "|" );
+    }
+    else if ( ntk.is_nor( n ) || ntk.is_nor3( n ) )
+    {
+      writer.on_assign( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ), "|", false );
     }
     else if ( ntk.is_xor( n ) || ntk.is_xor3( n ) )
     {
       writer.on_assign( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ), "^" );
     }
+    else if ( ntk.is_xnor( n ) )
+    {
+      writer.on_assign( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ), "^", false );
+    }
     else if ( ntk.is_maj( n ) )
     {
-      std::array<signal<Ntk>, 3> children;
-      ntk.foreach_fanin( n, [&]( auto const& f, auto i ) { children[i] = f; } );
-
-      if ( ntk.is_constant( ntk.get_node( children[0u] ) ) )
-      {
-        std::vector<std::pair<bool, std::string>> vs;
-        vs.emplace_back( std::make_pair( ntk.is_complemented( children[1u] ), node_names[ntk.get_node( children[1u] )] ) );
-        vs.emplace_back( std::make_pair( ntk.is_complemented( children[2u] ), node_names[ntk.get_node( children[2u] )] ) );
-
-        if ( ntk.is_complemented( children[0u] ) )
-        {
-          // or
-          writer.on_assign( node_names[n], { vs[0u], vs[1u] }, "|" );
-        }
-        else
-        {
-          // and
-          writer.on_assign( node_names[n], { vs[0u], vs[1u] }, "&" );
-        }
-      }
-      else
-      {
-        writer.on_assign_maj3( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
-      }
+      writer.on_assign_maj3( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
     }
-    else if ( ntk.is_ite( n ) )
+    else if ( ntk.is_ite( n ) || ntk.is_mux21( n ) )
     {
-      std::array<signal<Ntk>, 3> children;
-      ntk.foreach_fanin( n, [&]( auto const& f, auto i ) { children[i] = f; } );
-
-      if ( ntk.is_constant( ntk.get_node( children[1u] ) ) )
-      {
-        assert( children[1u] == ntk.get_constant( false ) );
-        // a ? 0 : c = ~a & c
-        std::vector<std::pair<bool, std::string>> ins;
-        ins.emplace_back( std::make_pair( !ntk.is_complemented( children[0u] ), node_names[ntk.get_node( children[0u] )] ) );
-        ins.emplace_back( std::make_pair( ntk.is_complemented( children[2u] ), node_names[ntk.get_node( children[2u] )] ) );
-        writer.on_assign( node_names[n], ins, "&" );
-      }
-      else if ( ntk.get_node( children[1u] ) == ntk.get_node( children[2u] ) )
-      {
-        assert( !ntk.is_complemented( children[1u] ) && ntk.is_complemented( children[2u] ) );
-        // a ? b : ~b = a ^ ~b
-        std::vector<std::pair<bool, std::string>> ins;
-        ins.emplace_back( std::make_pair( ntk.is_complemented( children[0u] ), node_names[ntk.get_node( children[0u] )] ) );
-        ins.emplace_back( std::make_pair( ntk.is_complemented( children[2u] ), node_names[ntk.get_node( children[2u] )] ) );
-        writer.on_assign( node_names[n], ins, "^" );
-      }
-      else
-      {
-        writer.on_assign_mux21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
-      }
+      writer.on_mux21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
+    }
+    else if ( ntk.is_nmux21( n ) )
+    {
+      writer.on_nmux21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
+    }
+    else if ( ntk.is_aoi21( n ) )
+    {
+      writer.on_aoi21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
+    }
+    else if ( ntk.is_oai21( n ) )
+    {
+      writer.on_oai21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
+    }
+    else if ( ntk.is_axi21( n ) )
+    {
+      writer.on_axi21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
+    }
+    else if ( ntk.is_xai21( n ) )
+    {
+      writer.on_xai21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
+    }
+    else if ( ntk.is_oxi21( n ) )
+    {
+      writer.on_oxi21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
+    }
+    else if ( ntk.is_xoi21( n ) )
+    {
+      writer.on_xoi21( node_names[n], detail::format_fanin<Ntk>( ntk, n, node_names ) );
     }
     else
     {
@@ -762,10 +755,9 @@ void write_verilog_with_binding( Ntk const& ntk, std::ostream& os, write_verilog
         args.emplace_back( std::make_pair( gate.pins[i++].name, pair.second ) );
       }
       args.emplace_back( std::make_pair( gate.output_name, node_names[n] ) );
-
       writer.on_module_instantiation( name.append( std::string( length - name.length(), ' ' ) ),
                                       {},
-                                      std::string( "g" ) + std::string( nDigits - digits, '0' ) + std::to_string( counter ),
+                                      std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter ),
                                       args );
       ++counter;
 
