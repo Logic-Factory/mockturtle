@@ -329,6 +329,12 @@ public:
     (void)name;
     const auto index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
+    for ( int i = 0; i < 1; ++i )
+    {
+      signal child = { 0, 0 };
+      child.data = _storage->inputs.size(); // make sure the index of this input
+      node.children.push_back( child );
+    }
     node.data[1].h1 = 1; // mark the literal as PI
     _storage->inputs.emplace_back( index );
     return { index, 0 };
