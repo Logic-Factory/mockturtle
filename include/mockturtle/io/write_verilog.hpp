@@ -293,21 +293,21 @@ void write_verilog( Ntk const& ntk, std::ostream& os, write_verilog_params const
     } );
   }
 
-  std::string module_name = "top";
-  if ( ps.module_name )
-  {
-    module_name = *ps.module_name;
-  }
-  else
-  {
-    if constexpr ( has_get_network_name_v<Ntk> )
-    {
-      if ( ntk.get_network_name().length() > 0 )
-      {
-        module_name = ntk.get_network_name();
-      }
-    }
-  }
+  std::string module_name = "top_module";
+  // if ( ps.module_name )
+  // {
+  //   module_name = *ps.module_name;
+  // }
+  // else
+  // {
+  //   if constexpr ( has_get_network_name_v<Ntk> )
+  //   {
+  //     if ( ntk.get_network_name().length() > 0 )
+  //     {
+  //       module_name = ntk.get_network_name();
+  //     }
+  //   }
+  // }
   writer.on_module_begin( module_name, inputs, outputs );
 
   if ( ps.input_names.empty() )
@@ -670,21 +670,21 @@ void write_verilog_with_binding( Ntk const& ntk, std::ostream& os, write_verilog
     }
   } );
 
-  std::string module_name = "top";
-  if ( ps.module_name )
-  {
-    module_name = *ps.module_name;
-  }
-  else
-  {
-    if constexpr ( has_get_network_name_v<Ntk> )
-    {
-      if ( ntk.get_network_name().length() > 0 )
-      {
-        module_name = ntk.get_network_name();
-      }
-    }
-  }
+  std::string module_name = "top_module";
+  // if ( ps.module_name )
+  // {
+  //   module_name = *ps.module_name;
+  // }
+  // else
+  // {
+  //   if constexpr ( has_get_network_name_v<Ntk> )
+  //   {
+  //     if ( ntk.get_network_name().length() > 0 )
+  //     {
+  //       module_name = ntk.get_network_name();
+  //     }
+  //   }
+  // }
   writer.on_module_begin( module_name, inputs, outputs );
   if ( ps.input_names.empty() )
   {
@@ -776,7 +776,7 @@ void write_verilog_with_binding( Ntk const& ntk, std::ostream& os, write_verilog
 
           writer.on_module_instantiation( name.append( std::string( length - name.length(), ' ' ) ),
                                           {},
-                                          std::string( "g" ) + std::string( nDigits - digits, '0' ) + std::to_string( counter ),
+                                          std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter ),
                                           args );
           ++counter;
         }
@@ -988,21 +988,21 @@ void write_verilog_with_cell( Ntk const& ntk, std::ostream& os, write_verilog_pa
     }
   } );
 
-  std::string module_name = "top";
-  if ( ps.module_name )
-  {
-    module_name = *ps.module_name;
-  }
-  else
-  {
-    if constexpr ( has_get_network_name_v<Ntk> )
-    {
-      if ( ntk.get_network_name().length() > 0 )
-      {
-        module_name = ntk.get_network_name();
-      }
-    }
-  }
+  std::string module_name = "top_module";
+  // if ( ps.module_name )
+  // {
+  //   module_name = *ps.module_name;
+  // }
+  // else
+  // {
+  //   if constexpr ( has_get_network_name_v<Ntk> )
+  //   {
+  //     if ( ntk.get_network_name().length() > 0 )
+  //     {
+  //       module_name = ntk.get_network_name();
+  //     }
+  //   }
+  // }
   writer.on_module_begin( module_name, inputs, outputs );
   if ( ps.input_names.empty() )
   {
@@ -1134,7 +1134,7 @@ void write_verilog_with_cell( Ntk const& ntk, std::ostream& os, write_verilog_pa
 
       writer.on_module_instantiation( name.append( std::string( length - name.length(), ' ' ) ),
                                       {},
-                                      std::string( "g" ) + std::string( nDigits - digits, '0' ) + std::to_string( counter ),
+                                      std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter ),
                                       args );
       ++counter;
 
@@ -1170,7 +1170,7 @@ void write_verilog_with_cell( Ntk const& ntk, std::ostream& os, write_verilog_pa
 
               writer.on_module_instantiation( buf_name.append( std::string( length - buf_name.length(), ' ' ) ),
                                               {},
-                                              std::string( "g" ) + std::string( nDigits - digits, '0' ) + std::to_string( counter ),
+                                              std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter ),
                                               args );
               ++counter;
             }
@@ -1202,7 +1202,7 @@ void write_verilog_with_cell( Ntk const& ntk, std::ostream& os, write_verilog_pa
 
             writer.on_module_instantiation( buf_name.append( std::string( length - buf_name.length(), ' ' ) ),
                                             {},
-                                            std::string( "g" ) + std::string( nDigits - digits, '0' ) + std::to_string( counter ),
+                                            std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter ),
                                             args );
             ++counter;
           }
