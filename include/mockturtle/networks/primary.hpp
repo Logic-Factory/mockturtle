@@ -683,7 +683,7 @@ public:
     (void)n;
     return false;
   }
-  
+
   bool is_nary_and( node const& n ) const
   {
     (void)n;
@@ -889,14 +889,24 @@ public:
   mockturtle::iterates_over_t<Iterator, bool>
   compute( node const& n, Iterator begin, Iterator end ) const
   {
-    assert( n > 1 && !is_pi( n ) );
+    assert( n != 0 && !is_ci( n ) );
+
+    std::vector<typename Iterator::value_type> tts( begin, end );
 
     uint32_t index{ 0 };
-    while ( begin != end )
+    for ( uint32_t i = 0u; i < tts.size(); ++i )
     {
       index <<= 1;
-      index ^= *begin++ ? 1 : 0;
+      if ( _storage->nodes[n].children[i].weight )
+      {
+        index ^= tts[i] ? 1 : 0;
+      }
+      else
+      {
+        index ^= tts[i] ? 0 : 1;
+      }
     }
+
     return kitty::get_bit( _storage->data.cache[_storage->nodes[n].data[1].h1], index );
   }
 
@@ -904,9 +914,19 @@ public:
   mockturtle::iterates_over_truth_table_t<Iterator>
   compute( node const& n, Iterator begin, Iterator end ) const
   {
+    assert( n != 0 && !is_ci( n ) );
+
     const auto nfanin = _storage->nodes[n].children.size();
 
     std::vector<typename Iterator::value_type> tts( begin, end );
+
+    for ( uint32_t i = 0u; i < tts.size(); ++i )
+    {
+      if ( _storage->nodes[n].children[i].weight )
+      {
+        tts[i] = ~tts[i];
+      }
+    }
 
     assert( nfanin != 0 );
     assert( tts.size() == nfanin );

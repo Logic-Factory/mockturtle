@@ -235,7 +235,7 @@ private:
     kitty::create_from_words( tt_maj, &_maj, &_maj + 1 );
     _storage->data.cache.insert( tt_maj );
 
-    static uint64_t _ite = 0xd8;
+    static uint64_t _ite = 0xd8;            // ite(c, b, a)
     kitty::dynamic_truth_table tt_ite( 3 ); // func-id: 16
     kitty::create_from_words( tt_ite, &_ite, &_ite + 1 );
     _storage->data.cache.insert( tt_ite );
@@ -255,35 +255,15 @@ private:
     kitty::create_from_words( tt_nor3, &_nor3, &_nor3 + 1 );
     _storage->data.cache.insert( tt_nor3 );
 
-    static uint64_t _aoi21 = 0x15;            // !((a and b) or c) 0001,0101
+    static uint64_t _aoi21 = 0x07;            // oai21(a, b, c), a is low, c is high
     kitty::dynamic_truth_table tt_aoi21( 3 ); // func-id: 25
     kitty::create_from_words( tt_aoi21, &_aoi21, &_aoi21 + 1 );
     _storage->data.cache.insert( tt_aoi21 );
 
-    static uint64_t _oai21 = 0x57;            // !((a or b) and c) 0101,0111
+    static uint64_t _oai21 = 0x1f;            // oai21(a, b, c), a is low, c is high
     kitty::dynamic_truth_table tt_oai21( 3 ); // func-id: 27
     kitty::create_from_words( tt_oai21, &_oai21, &_oai21 + 1 );
     _storage->data.cache.insert( tt_oai21 );
-
-    static uint64_t _axi21 = 0x95;            // !((a and b) xor c) 1001,0101
-    kitty::dynamic_truth_table tt_axi21( 3 ); // func-id: 29
-    kitty::create_from_words( tt_axi21, &_axi21, &_axi21 + 1 );
-    _storage->data.cache.insert( tt_axi21 );
-
-    static uint64_t _xai21 = 0xd7;            // !((a xor b) and c) 1101,0111
-    kitty::dynamic_truth_table tt_xai21( 3 ); // func-id: 31
-    kitty::create_from_words( tt_xai21, &_xai21, &_xai21 + 1 );
-    _storage->data.cache.insert( tt_xai21 );
-
-    static uint64_t _oxi21 = 0xa9;            // !((a or b) xor c) 1010,1001
-    kitty::dynamic_truth_table tt_oxi21( 3 ); // func-id: 33
-    kitty::create_from_words( tt_oxi21, &_oxi21, &_oxi21 + 1 );
-    _storage->data.cache.insert( tt_oxi21 );
-
-    static uint64_t _xoi21 = 0x41;            // !((a xor b) or c) 0100,0001
-    kitty::dynamic_truth_table tt_xoi21( 3 ); // func-id: 35
-    kitty::create_from_words( tt_xoi21, &_xoi21, &_xoi21 + 1 );
-    _storage->data.cache.insert( tt_xoi21 );
   }
 
   /**
@@ -293,7 +273,7 @@ private:
    */
   signal _create_node( std::vector<signal> const& children, uint32_t literal )
   {
-    assert( children.size() <= 3u );
+    assert( children.size() >= 2u && children.size() <= 3u );
 
     const auto index = _storage->nodes.size();
     auto& node = _storage->nodes.emplace_back();
@@ -390,16 +370,6 @@ public:
 #pragma endregion
 
 #pragma region Create binary functions
-  signal create_node( std::vector<signal> const& children, kitty::dynamic_truth_table const& function )
-  {
-    if ( children.size() == 0u )
-    {
-      assert( function.num_vars() == 0u );
-      return get_constant( !kitty::is_const0( function ) );
-    }
-    return _create_node( children, _storage->data.cache.insert( function ) );
-  }
-
   signal create_and( signal a, signal b )
   {
     return _create_node( { a, b }, 4 );
@@ -531,7 +501,7 @@ public:
   {
     assert( !children.empty() );
     const auto tt = other._storage->data.cache[other._storage->nodes[source].data[1].h1];
-    return create_node( children, tt );
+    return _create_node( children, _storage->data.cache.insert( tt ) );
   }
 #pragma endregion
 
@@ -910,14 +880,24 @@ public:
   mockturtle::iterates_over_t<Iterator, bool>
   compute( node const& n, Iterator begin, Iterator end ) const
   {
-    assert( n > 1 && !is_pi( n ) );
+    assert( n != 0 && !is_ci( n ) );
+
+    std::vector<typename Iterator::value_type> tts( begin, end );
 
     uint32_t index{ 0 };
-    while ( begin != end )
+    for ( uint32_t i = 0u; i < tts.size(); ++i )
     {
       index <<= 1;
-      index ^= *begin++ ? 1 : 0;
+      if ( _storage->nodes[n].children[i].weight )
+      {
+        index ^= tts[i] ? 1 : 0;
+      }
+      else
+      {
+        index ^= tts[i] ? 0 : 1;
+      }
     }
+
     return kitty::get_bit( _storage->data.cache[_storage->nodes[n].data[1].h1], index );
   }
 
@@ -925,9 +905,19 @@ public:
   mockturtle::iterates_over_truth_table_t<Iterator>
   compute( node const& n, Iterator begin, Iterator end ) const
   {
+    assert( n != 0 && !is_ci( n ) );
+
     const auto nfanin = _storage->nodes[n].children.size();
 
     std::vector<typename Iterator::value_type> tts( begin, end );
+
+    for ( uint32_t i = 0u; i < tts.size(); ++i )
+    {
+      if ( _storage->nodes[n].children[i].weight )
+      {
+        tts[i] = ~tts[i];
+      }
+    }
 
     assert( nfanin != 0 );
     assert( tts.size() == nfanin );

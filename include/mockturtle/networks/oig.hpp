@@ -1258,7 +1258,7 @@ public:
     auto v1 = *begin++;
     auto v2 = *begin++;
 
-    return ( v1 ^ c1.weight ) && ( v2 ^ c2.weight );
+    return ( v1 ^ c1.weight ) || ( v2 ^ c2.weight );
   }
 
   template<typename Iterator>
@@ -1275,7 +1275,7 @@ public:
     auto tt1 = *begin++;
     auto tt2 = *begin++;
 
-    return ( c1.weight ? ~tt1 : tt1 ) & ( c2.weight ? ~tt2 : tt2 );
+    return ( c1.weight ? ~tt1 : tt1 ) | ( c2.weight ? ~tt2 : tt2 );
   }
 
   /*! \brief Re-compute the last block. */
@@ -1299,7 +1299,7 @@ public:
     assert( result.num_blocks() == tt1.num_blocks() || ( result.num_blocks() == tt1.num_blocks() - 1 && result.num_bits() % 64 == 0 ) );
 
     result.resize( tt1.num_bits() );
-    result._bits.back() = ( c1.weight ? ~( tt1._bits.back() ) : tt1._bits.back() ) & ( c2.weight ? ~( tt2._bits.back() ) : tt2._bits.back() );
+    result._bits.back() = ( c1.weight ? ~( tt1._bits.back() ) : tt1._bits.back() ) | ( c2.weight ? ~( tt2._bits.back() ) : tt2._bits.back() );
     result.mask_bits();
   }
 #pragma endregion

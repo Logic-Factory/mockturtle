@@ -1261,7 +1261,7 @@ public:
 
     if ( c1.index <= c2.index )
     {
-      return ( v1 ^ c1.weight ) && ( v2 ^ c2.weight );
+      return ( v1 ^ c1.weight ) || ( v2 ^ c2.weight );
     }
     else
     {
@@ -1285,7 +1285,7 @@ public:
 
     if ( c1.index <= c2.index )
     {
-      return ( c1.weight ? ~tt1 : tt1 ) & ( c2.weight ? ~tt2 : tt2 );
+      return ( c1.weight ? ~tt1 : tt1 ) | ( c2.weight ? ~tt2 : tt2 );
     }
     else
     {
@@ -1316,7 +1316,7 @@ public:
     result.resize( tt1.num_bits() );
     if ( c1.index <= c2.index )
     {
-      result._bits.back() = ( c1.weight ? ~( tt1._bits.back() ) : tt1._bits.back() ) & ( c2.weight ? ~( tt2._bits.back() ) : tt2._bits.back() );
+      result._bits.back() = ( c1.weight ? ~( tt1._bits.back() ) : tt1._bits.back() ) | ( c2.weight ? ~( tt2._bits.back() ) : tt2._bits.back() );
     }
     else
     {

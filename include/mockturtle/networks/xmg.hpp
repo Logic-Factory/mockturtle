@@ -79,18 +79,18 @@ public:
 
   using base_type = xmg_network;
   using storage = std::shared_ptr<xmg_storage>;
-  using node = std::size_t;
+  using node = uint64_t;
 
   struct signal
   {
     signal() = default;
 
-    signal( std::size_t index, std::size_t complement )
+    signal( uint64_t index, uint64_t complement )
         : complement( complement ), index( index )
     {
     }
 
-    signal( std::size_t data )
+    signal( uint64_t data )
         : data( data )
     {
     }
@@ -104,10 +104,10 @@ public:
     {
       struct
       {
-        std::size_t complement : 1;
-        std::size_t index : 63;
+        uint64_t complement : 1;
+        uint64_t index : 63;
       };
-      std::size_t data;
+      uint64_t data;
     };
 
     signal operator!() const
@@ -1179,7 +1179,7 @@ public:
   {
     return n > 0 && !is_ci( n ) && _storage->nodes[n].children[0].index > _storage->nodes[n].children[1].index;
   }
-  
+
   bool is_mux21( node const& n ) const
   {
     (void)n;
