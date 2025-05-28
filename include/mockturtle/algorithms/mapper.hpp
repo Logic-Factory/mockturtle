@@ -300,6 +300,22 @@ public:
     /* generate the output network */
     finalize_cover<seq_map_ntk_t>( res, old2new );
 
+    // add the constant and input mapping
+    auto const_zero = ntk.node_to_index( ntk.get_node( ntk.get_constant( false ) ) );
+    auto const_one = ntk.node_to_index( ntk.get_node( ntk.get_constant( false ) ) );
+    klut_2_ntk_map[const_zero] = 0;
+    if ( const_zero != const_one )
+    {
+      klut_2_ntk_map[const_zero] = 1;
+    }
+
+    ntk.foreach_pi( [this, res]( auto const& pi, auto index ) {
+      auto ipi = ntk.node_to_index( pi );
+      auto kpi = res.node_to_index( res.pi_at( index ) );
+      klut_2_ntk_map[kpi] = ipi;
+    } );
+    res._klut_2_ntk_map = klut_2_ntk_map;
+
     return res;
   }
 
@@ -1525,6 +1541,13 @@ private:
     /* permutate and negate to obtain the matched gate truth table */
     std::vector<signal<klut_network>> children( gate->num_vars );
 
+    std::cout << "root: " << index << ", leaves: ";
+    for ( auto l : best_cut )
+    {
+      std::cout << l << ", ";
+    }
+    std::cout << "\n";
+
     auto ctr = 0u;
     for ( auto l : best_cut )
     {
@@ -1542,6 +1565,9 @@ private:
 
       /* add the node in the data structure */
       old2new[index][phase] = f;
+
+      std::cout << "old: " << index << ", new: " << res.get_node( f ) << "\n";
+      klut_2_ntk_map[res.get_node( f )] = index;
     }
     else
     {
@@ -1550,6 +1576,9 @@ private:
 
       /* add the node in the data structure */
       old2new[index][phase] = f;
+
+      std::cout << "old: " << index << ", new: " << res.get_node( f ) << "\n";
+      klut_2_ntk_map[res.get_node( f )] = index;
     }
   }
 
@@ -1697,6 +1726,8 @@ private:
   match_map matches;
   std::vector<float> switch_activity;
   network_cuts_t cuts;
+
+  std::unordered_map<uint32_t, uint32_t> klut_2_ntk_map;
 };
 
 } /* namespace detail */

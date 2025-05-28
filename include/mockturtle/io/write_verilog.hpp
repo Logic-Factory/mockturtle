@@ -755,9 +755,11 @@ void write_verilog_with_binding( Ntk const& ntk, std::ostream& os, write_verilog
         args.emplace_back( std::make_pair( gate.pins[i++].name, pair.second ) );
       }
       args.emplace_back( std::make_pair( gate.output_name, node_names[n] ) );
+      // std::string gate_name = std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter );
+      std::string gate_name = std::string( "GATE_" ) + std::to_string( n ) + std::string( "_" ) + std::to_string( counter );
       writer.on_module_instantiation( name.append( std::string( length - name.length(), ' ' ) ),
                                       {},
-                                      std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter ),
+                                      gate_name,
                                       args );
       ++counter;
 
@@ -773,10 +775,11 @@ void write_verilog_with_binding( Ntk const& ntk, std::ostream& os, write_verilog
         {
           digits = counter == 0 ? 0 : (int)std::floor( std::log10( counter ) );
           args[args.size() - 1] = std::make_pair( gate.output_name, ys[po_list[i]] );
-
+          // std::string gate_name = std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter );
+          std::string gate_name = std::string( "GATE_" ) + std::to_string( n ) + std::string( "_" ) + std::to_string( counter );
           writer.on_module_instantiation( name.append( std::string( length - name.length(), ' ' ) ),
                                           {},
-                                          std::string( "g" ) + std::string( ( nDigits >= digits ) ? ( nDigits - digits ) : 0, '0' ) + std::to_string( counter ),
+                                          gate_name,
                                           args );
           ++counter;
         }

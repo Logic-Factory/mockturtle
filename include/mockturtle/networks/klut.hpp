@@ -792,6 +792,7 @@ public:
 public:
   std::shared_ptr<klut_storage> _storage;
   std::shared_ptr<network_events<base_type>> _events;
+  std::unordered_map<uint32_t, uint32_t> _klut_2_ntk_map;
 };
 
 } // namespace mockturtle
